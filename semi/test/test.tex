@@ -1,0 +1,46 @@
+%tcolorboxのテストと設定要覧(参考サイト: https://texmedicine.hatenadiary.jp/entry/2015/12/17/000339)
+\documentclass[dvipdfmx]{jsarticle}
+\usepackage{tikz}
+\usetikzlibrary{positioning, intersections, calc, arrows.meta, math, through}
+\usepackage{tcolorbox}
+\usepackage{xcolor}
+\definecolor{salmon}{rgb}{1.0, 0.55, 0.41}
+\usepackage{enumerate}
+\usepackage{lipsum}
+\tcbuselibrary{theorems,breakable,skins,raster}
+\tcbuselibrary{xparse} %preamble
+\DeclareTColorBox{simplesquarebox}{ o m O{.5} O{} }% 
+  {empty, left=2mm, right=2mm, top=-1mm, attach boxed title to top left={xshift=1.2zw},
+  boxed title style={empty,left=-2mm,right=-2mm}, colframe=black, coltitle=black, coltext=black, breakable,  
+  underlay unbroken={\draw[black,line width=#3pt]
+    (title.east) -- (title.east-|frame.east) -- (frame.south east) -- (frame.south west) -- (title.west-|frame.west) -- (title.west); },
+  underlay first={\draw[black,line width=#3pt](title.east) -- (title.east-|frame.east) -- (frame.south east) ;
+    \draw[black,line width=#3pt] (frame.south west) -- (title.west-|frame.west) -- (title.west); },
+  underlay middle={\draw[black,line width=#3pt](frame.north east) -- (frame.south east) ;
+    \draw[black,line width=#3pt](frame.south west) -- (frame.north west) ;},
+  underlay last={\draw[black,line width=#3pt](frame.north east) -- (frame.south east) -- (frame.south west) -- (frame.north west) ;},
+  fonttitle=\gtfamily, IfValueTF={#1}{title=【#2】〈#1〉}{title=【#2】},#4}%watermark text
+\begin{document}
+\begin{tcolorbox}[enhanced,
+  colframe=salmon,
+  colback=salmon!20!white,
+  coltitle=black,
+  drop shadow, title=My box]
+box contents
+\end{tcolorbox}
+
+\begin{simplesquarebox}[subtitle]{My box}[1.5][watermark text={Andre YI}]
+  \lipsum[2]
+  \end{simplesquarebox}
+
+  \begin{tabular}{lccc}
+    \hline
+    状態変化 & $Q^{in}$ & $\varDelta U$ & $W^{out}$ \\
+    \hline \hline
+    定積変化 & $nC_V\varDelta T$ & $nC_V\varDelta T$ & 0 \\
+    定圧変化 & $nC_P\varDelta T$ & $nC_V\varDelta T$ & $nR\varDelta T$ \\
+    等温変化 & $nRT\log\frac{V_1}{V_0}$ & 0 & $nRT\log\frac{V_1}{V_0}$ \\
+    断熱変化 & 0 & $nC_V\varDelta T$ & $-nC_V\varDelta T$ \\
+    \hline
+  \end{tabular}
+\end{document}

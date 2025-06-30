@@ -1,0 +1,89 @@
+\usepackage{amsmath,amsfonts,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage{xcolor}
+\usepackage{otf}
+\usepackage{xspace}
+\usepackage{newpxtext}
+\usepackage{empheq,cases}
+\usepackage[absolute]{textpos}
+\usepackage{qrcode}
+% \usepackage{epstopdf} % For handling bounding box issue
+\usepackage[dvipdfmx]{graphicx} % For including graphics
+\usepackage{float}
+\usepackage{appendix}
+\renewcommand{\appendixname}{\textbf{Appendix~}}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\pagestyle{fancy}
+\fancyhf{} 
+\fancyhead[L]{\textsc{Chapter\ 2.2: Sigmoidal Function}}
+\fancyhead[R]{\textit{www.andreyis.com}}
+\fancyfoot[C]{\thepage\quad \textit{of}\quad\pageref{LastPage}}
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \renewcommand{\headrulewidth}{0pt}
+  \fancyfoot[C]{\thepage\quad \textit{of}\quad\pageref{LastPage}}
+  
+}
+
+% \renewcommand{\abstractname}{注意事項}
+% \renewcommand{\proofname}{\textbf{証明}}
+% \renewcommand{\qed}{\unskip\nobreak\quad\qedsymbol}
+\newtagform{textbf}[\textbf]{[}{]}
+\usetagform{textbf}
+\newcommand*{\ie}{\textbf{\textit{i.e.}}\@\xspace}
+\renewcommand{\thefootnote}{\arabic{footnote}}
+\newtheoremstyle{mystyle}%   % スタイル名
+    {}%b                     % 上部スペース
+    {}%                      % 下部スペース
+    {}%                      % 本文フォント
+    {}%                      % 1行目のインデント量
+    {\bfseries}%             % 見出しフォント
+    {:}%                     % 見出し後の句読点
+    { }%                     % 見出し後のスペース
+    {\thmname{#1}\thmnumber{ #2}\thmnote{ (#3)}}
+\theoremstyle{mystyle}
+% \setcounter{section}{0}
+% \stepcounter{section}
+% セクションカウンターを使用するが、表示はしない新しいセクションコマンドを作成
+\newtheorem{dfn}{\texttt{Def.}}[section]
+\newtheorem{exm}[dfn]{\texttt{Ex.}}
+\newtheorem{prop}[dfn]{\texttt{Prop.}}
+\newtheorem{lem}[dfn]{\texttt{Lem.}}
+\newtheorem{thm}[dfn]{\texttt{Thm.}}
+\newtheorem{cor}[dfn]{\texttt{Cor.}}
+\newtheorem{rem}[dfn]{\texttt{Rem.}}
+\newtheorem{fact}[dfn]{\texttt{Fact}}
+\renewcommand{\qedsymbol}{$\blacksquare$}
+\usepackage{lipsum} % 用于生成示例文本
+\usepackage{float} % 强制浮动
+\usepackage{tikz} % 用于定位
+%排版
+\usepackage[most]{tcolorbox}
+\usepackage{hyperref}
+\usepackage[nameinlink]{cleveref}
+
+% Theorem Environments
+\newtheorem{lemma}{Lemma}[section]   
+\newtheorem{definition}[lemma]{Definition}
+% proof Environment
+\makeatletter
+\let\c@exercise\c@lemma
+\def\p@exercise{\p@lemma}
+\def\theexercise{\thelemma}
+\makeatother
+\crefname{exercise}{exercise}{exercises}
+\newenvironment{exercise}[1][]{
+    \refstepcounter{exercise}\par\medskip
+    \begin{tcolorbox}[breakable, enhanced, colback=gray!7!white, parbox=false, drop fuzzy shadow]
+        \noindent {\textsc{Problem.~\theexercise #1}}
+        \rmfamily\par\medskip
+    }
+    {
+    \end{tcolorbox}
+    \medskip
+}
+
+\title{\vspace{-4.5cm}\S 2.2\quad Sigmoidal Function}
+\author{伊 冉(Andre YI)\ -\ 21122200512}
+\date{\today}

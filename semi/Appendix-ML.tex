@@ -1,0 +1,68 @@
+\section{\\単関数(Simple Function)}
+
+\subsection{\\単関数\cite{kingman1966introduction}}
+  単関数とは可測集合の指示関数の有限な線型結合のことである．
+  より正確に述べれば，集合 $X$ 上の実数値単関数とは，
+  $1_{A_i}$ を $A_i$ の指示関数として，$X$ の有限分割
+  \[
+    X \;=\; A_1 \sqcup A_2 \sqcup \dotsb \sqcup A_n
+  \]
+  と，適当な実数の定数 $\alpha_1, \dots, \alpha_n$ を取って
+  \[
+    f(x) \;=\; \sum_{i=1}^{n} \alpha_i\, 1_{A_i}(x)
+  \]
+  なる形に表すことのできる関数 
+  \[
+    f \colon X \;\longrightarrow\; \mathbb{R}
+  \]
+  を言う．単関数を可測空間 $(X,\Sigma)$ 上で考えるとき，
+  この形の単関数が $\Sigma$–可測であるための必要十分条件は，
+  任意の $A_i$ が $\Sigma$ に属することである．
+  したがって可測関数のみを考える場合には，
+  単関数を「互いに交わらない可測集合の有限列
+  $A_1,\dots,A_n \in \Sigma$ で，
+  それらの和が $X$ を被覆するもの」
+  に関する指示関数の線型結合として定める。
+  空間 $(X,\Sigma)$ 上に測度 $\mu$ が定義されるとき、単函数 $f$ の $\mu$ に関する積分は、
+\[
+  \int_X f \, d\mu \;:=\; \sum_{k=1}^{n} a_k \mu(A_k)
+  \qquad\bigl(f = \sum_{k} a_k\,1_{A_k}\bigr)
+\]
+と定める。% the \\ insures the section title is centered below the phrase: AppendixA
+
+\subsection{ルベーグ積分との関係\cite{ito1963lebesgue}}
+  どのような非負の可測関数 $f: X \to \mathbb{R}^{+}$ であっても、単調増加な非負の単関数の列の各点収束の極限として与えられる。実際、$f$ を測度空間 $(X, \Sigma, \mu)$ 上定義される、上述のような非負可測関数とする。各 $n \in \mathbb{N}$ に対し、$f$ の値域を、$2^{2n} + 1$ 個の区間で、その内の $2^{2n}$ 個が長さ $2^{-n}$ を持つようなものに区分する。すなわち、各 $n$ に対して、
+  \[
+  I_{n,k} = \left[ \frac{k-1}{2^n}, \frac{k}{2^n} \right) \quad \text{for } k = 1, 2, \ldots, 2^{2n}
+  \]
+  および
+  \[
+  I_{n, 2^{2n}+1} = [2^n, \infty)
+  \]
+  を定める（固定された $n$ に対して、各集合 $I_{n,k}$ は互いに素であり、実数直線の非負の部分を覆うことに注意されたい）。
+  
+  今、可測集合
+  \[
+  A_{n,k} = f^{-1}(I_{n,k}) \quad \text{for } k = 1, 2, \ldots, 2^{2n} + 1
+  \]
+  を定義する。このとき、単関数の増加列
+  \[
+  f_n = \sum_{k=1}^{2^{2n}+1} \frac{k-1}{2^n} \mathbf{1}_{A_{n,k}}
+  \]
+  は、$n \to \infty$ としたとき、$f$ へと各点収束する。$f$ が有界であるなら、その収束は一様収束である。
+
+\subsection{\\本質的上限と本質下限の性質}
+$(X, \mathcal{F}, \mu) \text{を測度空間}, \, f: X \rightarrow \mathbb{R} \text{を可測関数とす}
+\text{る。このとき,}$
+
+
+$
+\\
+1. \text{ess sup } f = - \text{ess inf}(-f).\\
+2. \inf f \leq \text{ess inf } f \leq \text{ess sup } f \leq \sup f.\\
+3. g: X \rightarrow \mathbb{R} \text{も可測関数で}, \, f = g, \, \text{a.e. (ほとん}
+   \text{どいたるところ)とするとき}, \, \text{ess sup } f = 
+   \text{ess sup } g.\\
+4. h: \mathbb{R} \rightarrow \mathbb{R} \text{が連続関数であるとき},
+   \text{ess sup } h = \sup h, \, \text{ess inf } h = \inf h.
+$

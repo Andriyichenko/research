@@ -1,0 +1,211 @@
+\documentclass[a4paper]{jsarticle}%pLatexでコンパイルしてください
+\usepackage{ml3.5}
+\begin{document}
+\maketitle
+%%%概要を出力したい人はこのように記述
+\vspace{-0.4cm}
+\begin{figure}[H] 
+  \centering
+  \begin{tikzpicture}[remember picture, overlay]
+      \node[anchor=north east] at (current page.north east) {
+          \includegraphics[width=2cm]{qr3.6.png} 
+      };
+      \node[anchor=north east, yshift=-2cm] at (current page.north east) {デジタル版はここ};
+  \end{tikzpicture}
+  \label{fig:my_label}
+\end{figure}
+\section{\textbf{Cross-Entropy}}
+\thispagestyle{plain}
+\begin{dfn}[\textbf{交差エントロピー(クロスエントロピー)}]\label{def:cross-entropy}
+\addcontentsline{toc}{subsubsection}{定義}
+$p$と$q$を $ \mathbb{R} $上の2つの確率密度変数とする。負の尤度関数 $ -\ell_{q}(x)=-\ln q(x) $が $ q(x) $によって与えられる情報を測定する。
+$q $の $ p $ に対する交差エントロピーは、次のように定義される。\\
+\begin{equation}
+  S(p, q) = \mathbb{E}^p[-\ell_q] = -\int_{\mathbb{R}} p(x) \ln q(x) \, dx\footnotemark[1] \label{eq2}
+\end{equation}
+\footnotetext[1]{\eqref{eq2}式は連続確率密度変数(continuous probability variable)に対する定義である。\\}  
+$p$と$q$が離散確率変数(discrete probability variable)なら、
+
+\begin{equation}
+  S(p, q) = \mathbb{E}^p[-\ell_q] = -\sum_{x} p(x) \ln q(x)
+\end{equation}
+
+
+\begin{exercise}
+  離散確率変数 $p$と$q$に対して、交差エントロピー $S(p, q)\geq 0$ を示せ\\
+\end{exercise}
+
+\begin{proof}
+まず、確率密度変数の定義によって、$p(x)\geq 0\quad q(x)\geq 0$かつ $ \displaystyle\sum_{x}p(x)=1\quad \displaystyle\sum_{x}q(x)=1 $  が成り立つ\\  
+次に、対数関数の性質により、 $ q(x)>0 $となる。したがって、$q(x)\in (0,1]\implies -\ln q(x)\geq 0$が成り立つ\\
+したがって、$-\sum_{x} p(x) \ln q(x) = \sum_{x} -p(x) \ln q(x)\geq 0$が成り立つ。
+\end{proof}
+\end{dfn}
+
+\begin{prop}\label{prop:cross-entropy}
+シャノンエントロピー(Shannon-entropy) \footnotemark[2]$H(p)$ と交差エントロピー $S(p, q)$により、$S(p,q)\geq H(p)$が成り立つ。$H(p)$は次のように表される。
+\[
+H(p) = -\mathbb{E}^p[\ell_p] = - \int_{\mathbb{R}} p(x) \ln p(x) \, dx
+\]
+\footnotetext[2]{シャノンエントロピー \( H(p) \) は、 \( p(x) \) 内の情報量を測定するものです。したがって、前の命題は、分布 \( q(x) \) によって与えられる情報が、 \( p(x) \) から評価された場合、常に \( p(x) \) によって定義される情報よりも大きいことを示しています。}
+\begin{proof}
+\footnotemark[3]$\ln u\leq u-1\, (for\, u >0)$を用いると、次の\eqref{eq1}のように変形できる。
+\footnotetext[3]{証明: $u>0$とする。$f(u)=\ln u - u + 1$とすると、$f'(u)=\dfrac{1}{u}-1=0\implies u=1$であり、$f'(u)$は単調減少関数であるから、$u=1$の時に$f(u)$の最大値となる。したがって$f(u)\leq f(1)=0$となる。}
+\begin{align}
+S(p, q) - H(p) &= -\int_{\mathbb{R}} p(x) \ln q(x) \, dx + \int_{\mathbb{R}} p(x) \ln p(x) \, dx \notag\\
+&= -\left\{\int_{\mathbb{R}} p(x)\left[\ln q(x)-\ln p(x)\right]\, dx\right\}\notag\\
+&= -\int_{\mathbb{R}} p(x)\ln \left(\dfrac{q(x)}{p(x)}\right)\, dx\geq \int_{\mathbb{R}} p(x) \left(\dfrac{q(x)}{p(x)}-1\right)\, dx \label{eq1}\\
+&= \int_{\mathbb{R}} p(x)\, dx -\int_{\mathbb{R}} q(x)\, dx =1-1= 0 \notag
+\end{align}
+したがって、\( S(p, q) - H(p) \geq 0 \) であり、\( S(p, q) = H(p) \) となるのは \( p = q \) の場合のみです。
+\end{proof}
+\end{prop}
+
+\begin{cor}
+  $p$を $\mathbb{R}$ 上の一次元ランダム変数$X$の密度関数とする。次のようになる：
+\[ 
+H(p) \leq \frac{1}{2} \ln(2\pi e Var(X))
+\]
+
+\begin{proof}
+  $\mu = E[X]$ と $\sigma^2 = \text{Var}(X) $ とし、正規密度関数を次のように考えます：
+\[ q(x) = \frac{1}{\sqrt{2\pi}\sigma} e^{-\dfrac{(x - \mu)^2}{2\sigma^2}} \]
+これは $p(x)$  と同じ平均と分散を持っています。 $p$  の $q$ に対する交差エントロピーは次のように計算できます。
+
+\begin{align*}
+  S(p, q) &= -\int_{\mathbb{R}} p(x) \ln q(x) dx = -\int_{\mathbb{R}}p(x)\left(\ln\dfrac{1}{\sigma \sqrt{2\pi}} + \ln e^{-\dfrac{(x - \mu)^2}{2\sigma^2}}\right)dx\\
+  &= -\left\{\int_{\mathbb{R}}p\left(x\right)\ln \dfrac{1}{\sigma \sqrt{2\pi}} dx + \int_{\mathbb{R}}p \left(x\right)\ln e^{-\dfrac{(x - \mu)^2}{2\sigma^2}} dx\right\}\\
+  &= -\left\{\ln \dfrac{1}{\sigma \sqrt{2\pi}}\footnotemark[4]\int_{\mathbb{R}}p \left(x\right)dx -\dfrac{1}{2\sigma^2}\int_{\mathbb{R}}p \left(x\right) \left(x-\mu\right)^2 dx\right\}\\
+  &= -\ln \dfrac{1}{\sigma \sqrt{2\pi}} + \dfrac{1}{2\sigma^2}\int_{\mathbb{R}}p \left(x\right) \left(x-\mu\right)^2 dx\\
+  &= -\ln \left[\left(\sigma \sqrt{2\pi}\right)^2\right]^{-\dfrac{1}{2}} + \dfrac{1}{2\sigma^2}\footnotemark[5]\int_{\mathbb{R}}p \left(x\right) \left(x-\mu\right)^2 dx\\
+  &= \dfrac{1}{2}\ln \left(2\pi\sigma^2\right)+ \dfrac{1}{2}\\
+  &= \dfrac{1}{2}\ln \left(2\pi e\sigma^2\right)
+\end{align*}
+上のProp.3.2から$H(p) \leq S(p, q) = \frac{1}{2} \ln(2\pi\sigma^2)$ となる。
+等式は、正規分布を持つ確率変数 $ X $の場合に成り立つ。
+\end{proof}
+\footnotetext[4]{$p(x)$は確率密度変数であるため、$\int_{\mathbb{R}}p \left(x\right)dx=1$が成り立つ。}
+\footnotetext[5]{$\int_{\mathbb{R}}p \left(x\right) \left(x-\mu\right)^2 dx$は、$X$の分散である。\ie $ \sigma^2 = \int_{\mathbb{R}}p \left(x\right) \left(x-\mu\right)^2 dx$}
+\end{cor}
+
+\begin{rem}
+  交差エントロピー(Cross-entropy)は、分類問題でよく使用されますが、回帰問題でも一般的に使用されます。
+\end{rem}
+\section{Kullback-Leibler\ Divergence}
+
+\begin{dfn}[\textbf{Kullback-Leibler\ Divergence(カルバック-ライブラー情報量)}]\label{def:KL-divergence}
+  Kullback-Leibler(KL)\ Divergence(またはRelative-entropy)とは、Cross-entropyとShannon-entropyの差である。
+  \ie ある確率分布$p$を基準にし、別の分布$q$がどれだけ異なるかを測る指標であり、
+  その式は以下のように表示される。
+\[D_{KL} \left(p||q\right) = S \left(p,q\right)-H \left(p\right)\]
+\eqref{eq1}式により、
+$$ D_{KL} \left(p||q\right) = -\int_{\mathbb{R}}p \left(x\right)\ln \dfrac{q \left(x\right)}{p \left(x\right)} \, \mathrm{d}x $$
+\end{dfn}
+\ \\
+Prop.3.2の$S \left(p,q\right)\geq H \left(p\right)$により、 $ D_{KL} \left(p||q\right)\geq 0 $が成り立つ。
+しかしながら、これは距離\footnotemark[6]ではない。なぜなら、対称性がなく、三角不等式を満たさないからである。\\
+Cross-entropyとKullback-Leibler\ Divergenceの両方は、神経ネットワーク(neuronal networks)のコスト関数として考えることができる。
+これについては以下で説明する。\\
+\footnotetext[6]{距離の定義として代表的なものは「距離空間」における距離の性質です。距離 $ d \left(x,y\right) $が距離空間において満たすべき条件は以下の通りです。
+1. 非負性: $d(x,y) \geq 0$ であり、$d(x,y) = 0$ の場合は $x = y$ である。
+2. 対称性: $d(x,y) = d(y,x)$
+3. 三角不等式: $d(x,z) \leq d(x,y) + d(y,z)$、ここで、$\exists p,q\implies S(p,q)=-\int_{\mathbb{R}}p(x)\ln q(x)dx\neq -\int_{\mathbb{R}}q(x)\ln p(x)dx=S(q,p)$、したがって、$S(p,q)$は対称性を満たさなくて距離ではない。}
+\\
+まず$ X $を入力ランダム変数とし、\  
+出力$ Y=f_{\theta} \left(X,\xi\right)\quad \left(\theta = \left(\mathbf{w,b}\right), \xi\colon\ ネットワークのノイズを示すランダム変数 \right) $とし, 
+$ Z $をターゲットランダム変数とし、 $ P_{X,Z}\left(x,z\right) $を$\left(X,Z\right) $の同時確率密度関数(joint probability density function)\footnotemark[7]とし、訓練分布(training distribution)と見なされる。 
+$ P_{Y} \left(y|x\right) $\footnotemark[8]を入力Xを与えられたときの出力Yの条件付き確率密度関数(条件付きモデル密度関数)とする。\\
+\footnotetext[7]{n個の確率変数$X_1, X_2, \ldots, X_n$の同時確率分布とは、 
+確率変数の組 $\left(X_1, X_2, \ldots, X_n \right)\in \mathbb{R}^n $に確率を対応させる関数のことである。
+同時確率分布は$\mathbb{R}^n $上の測度であり、$P_{X_1, X_2, \ldots, X_n}( \cdot )$と書かれる。確率変数 $X, Y$ が連続型であるとき、 $ p(a \leq X \leq b, c \leq Y \leq d) = \int_a^b \int_c^d f(x,y) \, dx \, dy $を満たす $f$ を同時確率密度関数 (joint probability density function) という。
+なお、$f$ は次の2つの条件を満たす。すべての $x,y$ に対して、$f(x,y) \geq 0$, $ \int_S f(x) \, dx = 1 $\ (ただし、$S$ は標本空間 (sample space) であるとする。)}
+\footnotetext[8]{$ p_{Y} \left(y|x\right)=\dfrac{p_{X,Y} \left(x,y\right)}{p_{X} \left(x\right)} = \dfrac{p_Y \left(y\right)\cdot p_X \left(x|y\right)}{p_X \left(x\right)}$, その$p_{X,Y} \left(x,y\right)$は $ X $と $ Y $の同時確率密度関数, $ p_X \left(x\right) $は $ X $の周辺確率密度関数(marginal probability density function)。
+確率変数$X$,$ Y$ が離散型であるとき、 $X = x_i$ が与えられたときの$Y$ となる条件付き期待値
+(conditional expectation of $Y$ given\ $X = x$)を次のように定める。
+$\mathbb{E} \left[Y|X\right] = \mathbb{E} \left[Y=y|X =x\right]=\displaystyle\sum_{y} y p_{\left(Y=y | X=x\right)}=\displaystyle\sum_{y} y \dfrac{p(Y=y, X=x)}{p(X=x)}$
+。\ ここで、$p(Y=y, X=x)$は$Y$と$X$の同時確率質量関数、$p(X=x)$は$X$の周辺確率質量関数である。}
+
+次に、パラメータ $ \theta $を調整することで、密度関数を比較することを説明する。\\
+与えられた訓練分布 $ p = p_{X,Z} \left(x,z\right) $に対して、
+pとqのクロスエントロピーをできるだけ小さくする条件付きモデル分布 $ q = p_{\theta} \left(\cdot|x\right)$を得ることができる。その値 $ \theta^* = \arg\min_{\theta} S \left(p_{X,Z},p_{\theta} \left(Z|X\right)\right) $は以下のコスト関数の最小値である。
+\begin{equation*}
+  C \left(\theta\right) = S \left(p_{X,Z},p_{\theta} \left(Z|X\right)\right) 
+\end{equation*}
+上のProp.\ref{prop:cross-entropy}により、$S \left(\theta\right) \geq H \left(p_{X,Z}\right)$が成り立つ。したがって、調整された最小値は訓練分布のシャノンエントロピー $ H \left(p_{X,Z}\right) $と等しくなる。\ie $C(\theta*)=S(p_{X,Y},p_{\theta*}(Z|X)) = H(p_{X,Z})$\\
+次に、 $ p_{X} \left(x\right)$を入力変数 $ X $の密度関数とする。条件付き密度関数の性質を利用すると、
+\begin{align}
+  C \left(\theta\right) &= S \left(p_{X,Z}, p_{\theta} \left(Z|X\right)\right)= -\iint p_{X,Z} \left(x, z\right) \ln p_\theta \left(z|x\right) \, dx \, dz\notag\\
+  &= -\iint p_{X,Z} \left(x,z\right)\ln \left(\dfrac{p_{\theta \left(x,z\right)}}{p_{X} \left(x\right)}\right)\, dx \, dz\notag \\
+  &= -\iint p_{X,Z} \left(x,z\right)\ln p_{\theta} \left(x,z\right) \, dx \, dz + \iint p_{X,Z} \left(x,z\right)\ln p_{X} \left(x\right) \, dx \, dz\notag\\
+  &= S(p_{X,Z}, p_\theta(X,Z)) + \int \left( \int p_{X,Z}(x, z) \, dz \right) \ln p_X(x) \, dx\label{proof}\\
+  &= S(p_{X,Z}, p_\theta(X,Z)) + \int p_X(x) \ln p_X(x) \, dx\notag\\
+  &= S(p_{X,Z}, p_\theta(X,Z)) - H(p_{\scriptstyle X})\notag
+\end{align}
+
+\begin{exercise}
+  \eqref{proof}式の$p_X \left(x\right)=\int p_{X,Z}(x, z) \, dz$を証明せよ
+\end{exercise}
+
+\begin{proof}
+確率論の基本原理から、結合分布(同時分布)は次のように分解できる：
+\[
+  p_{X,Z}(x, z) = p_X(x) \cdot p_{Z}(z|x)
+\]
+次に、$p_{X,Z}(x, z)$を$z$に関して積分すると、
+\[
+  \int p_{X,Z}(x,z) \, dz = \int p_{Z}(z|x) p_X(x) \, dz
+\]
+ここで、 $ p_X \left(x\right) $は定数なので、 $ \int p_{Z}(z|x) p_X(x) \, dzp_X \left(x\right)\int p_Z \left(z|x\right)\, dz $となる。そして、条件付き確率密度関数の性質により、$ \int p_Z \left(z|x\right)\, dz = 1 $が成り立つ。したがって、
+$$ \int p_{X,Z}(x,z) \, dz = p_X \left(x\right) $$
+\end{proof}
+
+\, \\
+ここで、$ H \left(p_X\right) $は入力エントロピー、 \ie 入力変数$X$のシャノンエントリピーである。 $ H \left(p_X\right) $はモデルパラメータ $ \theta $に依存しないため、新しいコスト関数$\overline{C}(\theta)$を以下のように定義する。
+$$ \overline{C}(\theta) = S(p_{X,Z}, p_\theta(X,Z)) $$
+これはモデル密度の訓練密度のクロスエントロピーであり、同じパラメータ$\theta$に対して$C \left(\theta\right)$最小値を取れる。すなわち、
+\begin{equation*}
+  \theta^* = \arg\min_{\theta} C \left(\theta\right) = \arg\min_{\theta} \overline{C}(\theta)
+\end{equation*}
+結論として、訓練密度関数$p_{X,Z}$とモデル密度関数 $ p_{\theta} \left(X,Y\right) $または条件付きモデル密度関数 $ p_{\theta} \left(Y|X\right) $が与えられた場合、コスト関数 $ \overline{C} \left(\theta\right) $または $ C \left(\theta\right) $のいずれかが最小となるパラメータ値 $ \theta $を見つけることができる。\\
+実際の応用では、ランダム変数 $ \left(X,Z\right) $は $ n $回の測定、 $ \left(x_1,z_1\right), \left(x_2,z_2\right),\cdots , \left(x_n,z_n\right) $から得られる。
+この場合、 $ \left(X,Z\right) $の同時確率密度関数がその経験訓練分布関数\footnotemark[9] $ \widehat{p}_{X,Z} \left(x,z\right) $によって近似されると仮定する。この場合、新しいコスト関数は訓練セットによって定義された経験的訓練分布と、モデルによって定義された確率分布との間のクロスエントロピーである。
+平均で期待値を近似すると、次のようになる。
+\footnotetext[9]{経験訓練分布(Empirical Training Distribution)は、訓練データに基づいて統計的に計算された確率分布を指します。この分布は、実際のデータの特性を近似するために使用され、機械学習モデルの訓練過程で最適化を行います。}
+\begin{align}
+  \tilde{C}(\theta) = S \left(\widehat{p}_{Z|X}, p_\theta \left(X,Z\right)\right) &= \mathbb{E}^{\widehat{p}_{X,Z}} \left[-\ln p_\theta \left(Z|X\right)\right]\notag\\
+  &= -\iint \widehat{p}_{X,Z}(x,z)\ln p_{\theta}(z|x)\, dx\, dz\notag\\
+  &= -\iint \ln p_{\theta}(z|x)\cdot \dfrac{1}{n}\sum_{j=1}^{n} \mathbf{1}_{\left(x=x_j,y=y_j\right)}\, dx\, dz\notag\\
+  &= -\dfrac{1}{n}\iint \ln p_{\theta}(z|x)\sum_{j=1}^{n} \mathbf{1}_{\left(x=x_j,y=y_j\right)}\, dx\, dz\footnotemark[10]\notag\\
+  &= -\dfrac{1}{n}\sum_{j=1}^{n} \ln p_\theta \left(z_j|x_j\right) \notag
+\end{align}
+同様の測定に基づく誤差は次のように定義できる。
+\footnotetext[10]{$\mathbf{1}_{\left(x=x_j,y=y_j\right)}$は,$x=x_j$かつ$y=y_j$のときに$1$,それ以外は$0$となる指示関数(indicator function)である。$ \displaystyle\sum_{j=1}^{n} \mathbf{1}_{\left(x=x_j,y=y_j\right)} = \mathbf{1}_{\left(x=x_1,y=y_1\right)}+ \mathbf{1}_{\left(x=x_2,y=y_2\right)}+\cdots \mathbf{1}_{\left(x=x_n,y=y_n\right)} $、最後に積分の性質によって, $-\dfrac{1}{n}\sum_{j=1}^{n} \ln p_\theta \left(z_j|x_j\right) $となる。}
+\begin{equation}
+  \widehat{C}(\theta) = S \left(\widehat{p}_{X,Z}, p_{\theta} \left(X,Z\right)\right) = \mathbb{E}^{\widehat{p}_{X,Z}} \left[-\ln p_{\theta} \left(X,Z\right)\right] = -\dfrac{1}{n}\sum_{j=1}^{n} \ln p_{\theta} \left(x_j,z_j\right)\label{eq4}
+\end{equation}
+したがって、コスト関数$C \left(\theta\right) = D_{KL} \left(p_{X,Z}||p_{\theta} \left(X,Z\right)\right)$は訓練密度関数とモデル密度関数とのKullback-Leibler\ Divergenceによって与えられる。シャノンエトロピー $ H \left(p_{X,Z}\right) $がパラメータ $ \theta $に依存しないため、コスト関数は次のように表される。
+$$ \theta^* = \arg\min_{\theta} D_{KL} \left(p_{X,Z}||p_{\theta} \left(X,Z\right)\right) = \arg\min_\theta S \left(p_{X,Z},p_\theta \left(X,Z\right)\right) $$
+訓練分布とモデルの分布が一致するとき、その前の最小値は $ 0 $になる。\\
+訓練セット $\left(x_1,z_1\right), \left(x_2,z_2\right),\cdots , \left(x_n,z_n\right)$ が提供される場合で、コスト関数は経験的密度関数 $ \widehat{p}_{X,Z} $を用いて次のように書ける。
+\begin{equation}
+  C \left(\theta\right) = \mathbb{E}^{\widehat{p}_{X,Z}} \left[-\ln \dfrac{p_{\theta} \left(X,Z\right)}{\widehat{p}_{X,Z}}\right] = -\dfrac{1}{n}\sum_{i=1}^{n} \left(\ln p_{\theta} \left(x_i,z_i\right) -\ln \widehat{p}_\theta \left(x_i,z_i\right) \right)\notag
+\end{equation}
+\pagebreak
+\subsection{\textbf{Maximum Likelihood Estimation}}
+
+\begin{dfn}[\textbf{最大尤度推定法(Maximum Likelihood Estimation)}]\label{def:MLE}
+  最尤法とは、統計学において、与えられたデータからそれが従う確率分布の母数を点推定する方法である。最尤法が解く基本的な問題は「パラメータ$\displaystyle \theta$が不明な確率分布$\displaystyle f_{D}$に従う母集団から標本が得られたとき、データを良く説明する良い $\displaystyle \theta$は何か」である。
+\end{dfn}
+\, \\
+\eqref{eq4}の経験的コスト関数の最小値 $ \widehat{C} \left(\theta\right) $により、 $ \theta^* = \arg\min_{\theta} \widehat{C} \left(\theta\right) $はn回の独立した測定に基づく最大尤度推定量であるという特異な統計的性質がある。これは、次の計算から明らかであり、対数の性質を利用すると、
+\begin{align}
+  \theta^* &= \arg\min_\theta \widehat{C} \left(\theta\right) = \arg\max_\theta \dfrac{1}{n}\sum_{j=1}^{n} \ln p_{\theta} \left(x_j,z_j\right) \notag\\
+  &= \arg \max_{\theta} \sum_{j=1}^{n} \ln p_\theta(x_j, z_j) = \arg \max_{\theta} \ln \footnotemark[11]\left( \prod_{j=1}^{n} p_\theta(x_j,z_j) \right) \notag\\
+  &= \arg \max_{\theta} \prod_{j=1}^{n} p_\theta(x_j, z_j) = \arg \max_{\theta} p_\theta(X = \mathbf{x}, Z = \mathbf{z})\notag\\
+  &= \theta_{ML}\notag
+\end{align}
+\footnotetext[11]{対数の性質により、積の対数は和に変換される。\\
+したがって、$\displaystyle\sum_{j=1}^{n} \ln p_\theta (x_j,z_j)=\ln p_\theta \left(x_1,z_1\right)+\ln p_\theta \left(x_2,z_2\right)+\cdots + \ln p_\theta \left(x_n,z_n\right) = \ln \left(\displaystyle\prod_{j=1}^{n} p_\theta(x_j, z_j)\right)$となる。}
+要するに、経験的クロスエントロピーとクルバック・ライブラー発散がコスト関数として人気があるのは、最大尤度法との関係によるものである。さらに、これらのコスト関数をニューラルネットワークに使用することで、二乗和コスト関数の場合よりもプラトーが少ないコスト面が得られ、ネットワークの学習時間が改善されることが期待されている。
+
+\end{document}

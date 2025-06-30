@@ -1,0 +1,77 @@
+\documentclass{article}
+
+\usepackage{amsmath,amsthm,lipsum}
+\usepackage[most]{tcolorbox}
+\usepackage{hyperref}
+\usepackage[nameinlink]{cleveref}
+
+% Theorem Environments
+\newtheorem{lemma}{Lemma}[section]   
+\newtheorem{definition}[lemma]{Definition}
+
+% proof Environment
+\makeatletter
+\let\c@exercise\c@lemma
+\def\p@exercise{\p@lemma}
+\def\theexercise{\thelemma}
+\makeatother
+\crefname{exercise}{exercise}{exercises}
+\newenvironment{exercise}[1][]{
+    \refstepcounter{exercise}\par\medskip
+    \begin{tcolorbox}[breakable, enhanced, colback=gray!7!white, parbox=false, drop fuzzy shadow]
+        \noindent {\textsc{Problem.~\theexercise #1}}
+        \rmfamily\par\medskip
+    }
+    {
+    \end{tcolorbox}
+    \medskip
+}
+
+
+
+\begin{document}
+    \section{The First Section}
+
+    \begin{definition}[Continuity]
+        \label{def:continuity}
+        $f\colon A\to B$ is continuous if for all $U \subseteq B$,
+        \[\text{$U$ is open in $B$} \implies \text{$f^{-1}(U)$ is open in $A$.} \]
+    \end{definition}
+
+    \begin{exercise}
+        \label{exercise:continuityEpsilonDelta}
+        Let $A\subseteq\mathbf R$. Show that $f\colon A\to\mathbf R$ is continuous in the sense of \cref{def:continuity} if and only if for all $a\in A$,  
+        \[(\forall\epsilon > 0)(\exists\delta>0)(\forall x\in A)(0<|a-x|<\delta\implies |f(x)-f(a)|<\epsilon). \]
+    \end{exercise}
+
+     {\bfseries Notice here \verb|\theexercise| is \theexercise.}
+
+    \section{The Second Section}
+
+    \begin{lemma}[Handshaking Lemma]
+        \label{lemma:HS}
+        Let $G=(V,E)$ be a graph. Then
+        \[\sum_{v\in V} \deg(v) = 2|E|. \]
+    \end{lemma}
+
+    \begin{exercise}
+        \label{exercise:HS}
+        Prove that if $H=(V,E)$ is a hypergraph, then
+        \[\sum_{v\in V}\deg(v) = \sum_{e\in E}|e|. \]
+        You may use \cref{lemma:HS}.
+    \end{exercise}
+
+     {\bfseries Notice here \verb|\theexercise| is \theexercise.}
+
+    \pagebreak 
+
+    \appendix
+    \section{Solutions to Exercises}
+    The solution to \cref{exercise:HS} is the following.
+
+    \begin{proof}
+        \lipsum[1]
+    \end{proof}
+\appendix
+\include{Appendix-ML}
+\end{document}
