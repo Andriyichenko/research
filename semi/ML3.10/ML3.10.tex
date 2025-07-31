@@ -1,0 +1,121 @@
+\documentclass[dvipdfmx,a4paper]{jsarticle}%pLatexでコンパイルしてください
+\usepackage{ml3.10}  
+\begin{document}
+\maketitle
+% \vspace{-0.4cm}
+% \begin{figure}[H] 
+%   \centering
+%   \begin{tikzpicture}[remember picture, overlay]
+%       \node[anchor=north east] at (current page.north east) {
+%           \includegraphics[width=2cm]{qr3.6.png} 
+%       };
+%       \node[anchor=north east, yshift=-2cm] at (current page.north east) {デジタル版はここ};
+%   \end{tikzpicture}
+%   \label{fig:my_label}
+% \end{figure}
+\section{\textbf{Mean Squared Error}}
+\thispagestyle{plain}
+\begin{dfn}[\textbf{平均二乗誤差(mean squared error)}]\label{def:cross-entropy}
+ターゲット$Z$とネットワークの出力$Y = f(X; \theta)$の二乗差の期待値は、平均として推定できる：
+
+$$\mathbb{E}[(Z - f(X; \theta))^2] \approx \frac{1}{N} \sum_{j=1}^{N} (z_j - f(x_j; \theta))^2.$$
+
+\noindent
+$\mathbb{E}[(Z - f(X; \theta))^2]$\ の値が小さいほどモデルの予測精度が高いと言える。その近似を取る理由はデータは有限個からである、大数の法則に従えば、$N$が十分に大きくなると、サンプル平均は期待値に収束するからである。
+
+\end{dfn}
+\section{\textbf{Quadratic Renyi Entropy}}
+\begin{dfn}[\textbf{二次Renyiエントロピー(Quadratic Renyi Entropy)}]\label{def:renyi-entropy}
+  この推定ではParzen window法を使用する。まず密度関数$p(x)$をwindow $W_\sigma$を用いたサンプルベース密度関数で置き換える：
+
+$$\hat{p}(x) = \frac{1}{N} \sum_{k=1}^{K} W_\sigma(x, x_k).$$
+
+\noindent
+簡単のため、windowを一次元ガウシアンと仮定する：
+
+$$W_\sigma(x, x_k) = \frac{1}{\sqrt{2\pi\sigma}} e^{-\frac{1}{2\sigma^2}|x-x_k|^2}.$$
+
+二次ポテンシャルエネルギー $U(p) = \int p(x)^2 dx$ を考える。二次Renyiエントロピーは $H_2(p) = -\ln \int \hat{p}(x)^2 dx = -\ln U(p)$ であるため、$U(p)$ を推定すれば十分である。推定は以下のように与えられる：
+
+$$U(\hat{p}) = \int \hat{p}(x)^2 dx = \int \hat{p}(x)\hat{p}(x) dx$$
+
+$$= \int \frac{1}{N} \sum_{k=1}^N W_\sigma(x, x_k) \frac{1}{N} \sum_{j=1}^N W_\sigma(x, x_j) dx$$
+
+$$= \frac{1}{N^2} \sum_{k=1}^N \sum_{j=1}^N \int W_\sigma(x, x_k)W_\sigma(x, x_j) dx.$$
+
+ここで、データサンプルは有限なので、$N$は有限のサンプル数を表し、積分の線形性により、その積分と求和を交換することができる。
+\newpage
+windowがガウシアンの場合、$W_\sigma(x, x') = \phi_\sigma(x - x')$ であり、$\phi_\sigma(t) = \frac{1}{\sqrt{2\pi\sigma}} e^{-\frac{t^2}{2\sigma^2}}$ である。変数変換により畳み込みに変換することで、前の積分を明示的に計算できる：
+
+\begin{align*}
+\int W_\sigma(x,x_k)W_\sigma(x,x_j) dx &= \int \phi_\sigma(x - x_k)\phi_\sigma(x - x_j) dx \\
+&= \int \phi_\sigma(t)\phi_\sigma(t - (x_j - x_k)) dt\\
+&=  (\phi_\sigma * \phi_\sigma)(x_j - x_k)
+\end{align*}
+ここで、$(\phi_\sigma * \phi_\sigma)(x_j - x_k)$ はガウシアンの畳み込み(convolution)\footnotemark[1]を表す。正規分布の和の再生性\footnotemark[2]を利用すると、以下の式を得る:
+$$(\phi_\sigma * \phi_\sigma)(x_j - x_k)=W_{\sigma\sqrt{2}}(x_j, x_k)$$
+\footnotetext[1]{
+一般に、独立な2つの確率変数 $X_1, X_2$ の確率密度関数を $p_1(x), p_2(x)$ とすると、その和 $X_1 + X_2$ の確率密度関数 $p(x)$ は、その畳み込み (convolution) $p_1 * p_2(x)$、\ie 、$
+p(x) = p_1 * p_2(x)= \int_{-\infty}^{\infty} p_1(y)p_2(x-y) \, dy$となる,その証明はAppendixを参照してください。
+}
+
+\footnotetext[2]{$X_1 \sim N(\mu_1, \sigma_1^2)$, $X_2 \sim N(\mu_2, \sigma_2^2)$ とするとき, $a_1 X_1 + a_2 X_2 \sim N(a_1 \mu_1 + a_2 \mu_2, a_1^2 \sigma_1^2 + a_2^2 \sigma_2^2)$ となることが知られています。これを、\textbf{正規分布の再生性}といいます。}
+
+最後の等式では、ガウシアンとそれ自身の畳み込みがスケールされたガウシアンになることを用いた。次に二次ポテンシャルエネルギーに代入すると、以下の推定が得られる：
+
+$$U(\hat{p}) = \frac{1}{N^2} \sum_{k=1}^N \sum_{j=1}^N W_{\sigma\sqrt{2}}(x_j, x_k).$$
+
+したがって、二次Renyiエントロピーの推定は以下のように与えられる：
+
+$$H_2(\hat{p}) = -\ln \left( \frac{1}{N^2} \sum_{k=1}^N \sum_{j=1}^N W_{\sigma\sqrt{2}}(x_j, x_k) \right)$$
+\end{dfn}
+\section{\textbf{Integrated squared error}}
+\begin{dfn}[\textbf{積分二乗誤差(Integrated Squared Error)}]\label{def:ise}
+   $p_Z$ と $p_Y$ がそれぞれ目標密度関数と出力密度関数を表すとき、コスト関数
+
+$$C(p_Z, p_Y) = \int |p_Z(u) - p_Y(u)|^2 du$$
+
+は二次ポテンシャルエネルギーを用いて次のように書ける：
+\begin{align*}
+C(p_Z, p_Y) &= \int p_Z(u) du + \int p_Y(u) du - 2 \int p_Z(u)p_Y(u) du\\
+&= U(p_Z) + U(p_Y) - 2 \int p_Z(u)p_Y(u) du.
+\end{align*}
+ここで $U(p)$ は前に定義された密度 $p$ の二次ポテンシャルエネルギーを表す。そこで推定は次の形をとる：
+
+$$C(\hat{p}_Z, \hat{p}_Y) = U(\hat{p}_Z) + U(\hat{p}_Y) - 2 \int \hat{p}_Z(u)\hat{p}_Y(u) du.$$
+
+\noindent
+最初の2つの項は既に計算されている。積分項の計算を行えばよい、これは\textit{Renyiクロスエントロピー}とも呼ばれる。したがって、以下のようになる：
+
+\begin{align*}
+\int \hat{p}_Z(u)\hat{p}_Y(u) du &= \int \frac{1}{N} \sum_{j=1}^N W_\sigma(u, z_j) \frac{1}{N'} \sum_{k=1}^{N'} W_\sigma(u, y_k) du \\
+&= \frac{1}{NN'} \sum_{j=1}^N \sum_{k=1}^{N'} \int W_\sigma(u, z_j)W_\sigma(u, y_k) du \\
+&= \frac{1}{NN'} \sum_{j=1}^N \sum_{k=1}^{N'} W_{\sigma\sqrt{2}}(z_j, y_k) \\
+&= \frac{1}{NN'} \sum_{j=1}^N \sum_{k=1}^{N'} W_{\sigma\sqrt{2}}(z_j, f(x_j; \theta)),
+\end{align*}
+
+ここで $y = f(x; \theta)$ はニューラルネットの入力-出力写像である。したがって、次の推定を得る：
+
+$$C(p_Z, \hat{p}_Y) = \frac{1}{N^2} \sum_{j=1}^N \sum_{k=1}^N W_{\sigma\sqrt{2}}(z_j, z_k) + \frac{1}{N'^2} \sum_{j=1}^{N'} \sum_{k=1}^{N'} W_{\sigma\sqrt{2}}(f(x_j; \theta), f(x_k; \theta))$$
+$$- \frac{2}{NN'} \sum_{j=1}^N \sum_{k=1}^{N'} W_{\sigma\sqrt{2}}(z_j, f(x_j; \theta)).$$
+\end{dfn}
+\section{\textbf{Maximum Mean Discrepancy(MMD)}}
+\begin{dfn}[\textbf{最大平均乖離(MMD)}]\label{def:mmd}
+  maximum mean discrepancy は2つの分布間の差異を測る指標です。 これは2つの分布に対応する期待値間の差異を表す関数空間上での上界です。
+すべての実用的な目的において、確率変数 $X$ は分布 $p(x)$ から抽出された $n$ 個の観測値 $x_1, \ldots, x_n$ のサンプルから知られる。同様に、確率変数 $Y$ は分布 $q(y)$ から抽出された $m$ 個の観測値 $y_1, \ldots, y_m$ のサンプルから知られる。平均は次のように平均として推定される：
+
+$$\mathbb{E}_{X \sim p}[\phi(X)] = \frac{1}{n} \sum_{i=1}^n \phi(x_i),$$
+
+$$\mathbb{E}_{Y \sim q}[\phi(Y)] = \frac{1}{m} \sum_{i=1}^m \phi(y_i),$$
+
+そして $p$ と $q$ の間の最大平均乖離は、前の2つのサンプルを用いて次のように推定できる：
+
+\begin{align*}
+d_{MMD}(p, q) &= \left\|\frac{1}{n} \sum_{i=1}^n \phi(x_i) - \frac{1}{m} \sum_{i=1}^m \phi(y_i)\right\|^2 \\
+&= \left(\frac{1}{n} \sum_{i=1}^n \phi(x_i) - \frac{1}{m} \sum_{i=1}^m \phi(y_i)\right)^T \left(\frac{1}{n} \sum_{i=1}^n \phi(x_i) - \frac{1}{m} \sum_{i=1}^m \phi(y_i)\right) \\
+&= \frac{1}{n^2} \sum_{i,j} K(x_i, x_j) + \frac{1}{m^2} \sum_{i,j} K(y_i, y_j) - \frac{2}{mn} \sum_{i,j} K(x_i, y_j), 
+\end{align*}
+
+ここで、カーネル記法 $K(x, y) = \phi(x)^T \phi(y)$ を用いた。
+\end{dfn}
+\end{document}
