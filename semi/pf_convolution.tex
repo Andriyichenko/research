@@ -118,39 +118,40 @@ $ \displaystyle\int \phi_{\sigma}(x-x_k)\phi_{\sigma}(x-x_j)dx \displaystyle\ove
 
 \begin{proof}
 
-$W=x_j-x_k$,$X=x-x_k$,$Y=x-x_j$とすると、$W=((x-x_k)-(x-x_j))=X-Y$となる。したがって、
+$W=x_j-x_k$,\ $X=x-x_k$,\ $Y=x_j-x$,\ $W$の密度関数を$f_{W}(w)$とすると、$W=((x-x_k)+(x_j-x))=X+Y$となる。したがって、
 $$
-F_{W}(w)=P(W\leq w)=\displaystyle\int_{-\infty}^{w}f_{W}(w)dt\ \implies\ f_{W}(w)=\frac{d}{dw}F_{W}(w)
+F_{W}(w)=P(W\leq w)=\displaystyle\int_{-\infty}^{w}f_{W}(w)dw\ \implies\ f_{W}(w)=\frac{d}{dw}F_{W}(w)
 $$ 
 
 \noindent
 $f_{W}(w)$は微積分学の基本原理を用いて$F_{W}(w)$を微分する式である。\\
 
 \noindent
-次に、$F_{W}(w)$は同時確率密度関数,$X$と$Y$は独立な確率変数であるため、$F_{W}(w)=P(X-Y\leq w)=\displaystyle \iint_{\{x-y\leq w\}} f_{XY}(x,y)dxdy\overset{indep.}{=}\iint_{\{x-y\leq w\}} f_{X}(x)f_{Y}(y)dxdy$となる。
-$w\in \mathbb{R}$であるので、一番外のyの積分の範囲は$-\infty$から$\infty$までであり、内の$x$の積分の範囲は$x\leq w+y$により、$-\infty$から$w+y$までである。\\
+次に、$F_{W}(w)$は同時確率密度関数,$X$と$Y$は独立な確率変数であるため、$F_{W}(w)=P(X+Y\leq w)=\displaystyle \iint_{\{x+y\leq w\}} f_{XY}(x,y)dxdy\overset{indep.}{=}\iint_{\{x+y\leq w\}} f_{X}(x)f_{Y}(y)dxdy$となる。
+$w\in \mathbb{R}$であるので、一番外のyの積分の範囲は$-\infty$から$\infty$までであり、内の$x$の積分の範囲は$x\leq w-y$により、$-\infty$から$w-y$までである。\\
 
 \noindent
 したがって、以下のように書き換えることができる：
 $$
-  F_{W}(w)=\int_{-\infty}^{\infty} f_{Y}(y)\left(\int_{-\infty}^{w+y} f_{X}(x)dx\right)dy
+  F_{W}(w)=\int_{-\infty}^{\infty} f_{Y}(y)\left(\int_{-\infty}^{w-y} f_{X}(x)dx\right)dy
 $$
-ここで、$x=w+y$とおくと、$-\infty< w+y\leq w+y\ \implies\ -\infty < w\leq w$となる。一方で、$\dfrac{dx}{dw}=1$である。以下のように書ける：
+ここで、$x=w-y$とおくと、$-\infty< w-y\leq w-y\ \implies\ -\infty < w\leq w$となる。一方で、$\dfrac{dx}{dw}=1$である。以下のように書ける：
 $$
-\int_{-\infty}^{\infty} f_{Y}(y)\left(\int_{-\infty}^{w+y} f_{X}(x)dx\right)dy=\int_{-\infty}^{\infty} f_{Y}(y)\left(\int_{-\infty}^{w} f_{X}(w+y)dy\right)dy
+\int_{-\infty}^{\infty} f_{Y}(y)\left(\int_{-\infty}^{w-y} f_{X}(x)dx\right)dy=\int_{-\infty}^{\infty} f_{Y}(y)\left(\int_{-\infty}^{w} f_{X}(w-y)dw\right)dy
 $$
 \noindent
 したがって、
 \begin{align*}
-  f_{W}(w)=\dfrac{d}{dw}F_{W}(w)&=\int_{-\infty}^{\infty} f_{Y}(y)\ \dfrac{d}{dw}\left(\int_{-\infty}^{w} f_{X}(w+y)dy\right)dy  \\
-  &=\int_{-\infty}^{\infty} f_{Y}(y)f_{X}(w+y)dxdy \\
-  &=\int_{-\infty}^{\infty} f_{Y}(y)f_{X}(w-(-y))dxdy \\
-  &=(f_{X}*f_{Y})(w)=f_{X-Y}(w)
+  f_{W}(w)=\dfrac{d}{dw}F_{W}(w)&=\int_{-\infty}^{\infty} f_{Y}(y)\ \dfrac{d}{dw}\left(\int_{-\infty}^{w} f_{X}(w-y)dw\right)dy  \\
+  &=\int_{-\infty}^{\infty} f_{Y}(y)f_{X}(w-y)dy \\
+  &=\int_{-\infty}^{\infty} \phi_{\sigma}(x_j-x)\phi_{\sigma}(x-x_k)dx \\
+  &=\int_{-\infty}^{\infty} \phi_{\sigma}(x-x_k)\phi_{\sigma}(x-x_j)dx \quad \Leftarrow({\footnotesize \text{\color{red} 正規分布の密度関数は偶関数なので}})\\
+  &=(\phi_{\sigma}\ast\phi_{\sigma})(x_j-x_k)=f_{x+y}(w)
 \end{align*}
-ここで、$f_{W}(w)=\displaystyle\int_{-\infty}^{\infty} \phi_{\sigma}(x-x_j)\phi_{\sigma}(w-(x_j-x))dx $となる。\ie $(\phi_{\sigma}\ast\phi_{\sigma})(w)\sim \mathcal{N}(x_j-x_k,2\sigma^2)$\\
+ここで、$t=x-x_k$とおくと、$\dfrac{dt}{dx}=1$であるため、$f_{W}(t)=\displaystyle\int_{-\infty}^{\infty} \phi_{\sigma}(t)\phi_{\sigma}(t-(x_j-x_k))dt = (\phi_{\sigma}\ast\phi_{\sigma})(x_j-x_k)$となる。\ie $(\phi_{\sigma}\ast\phi_{\sigma})(x_j-x_k)\sim \mathcal{N}(x_j-x_k,2\sigma^2)$\\
 
 \noindent
-したがって、$(\phi_{\sigma}\ast\phi_{\sigma})(w)=W_{\sigma\sqrt{2}}(x_k, x_j)$
+したがって、$(\phi_{\sigma}\ast\phi_{\sigma})(x_j-x_k)=\phi_{\sigma\sqrt{2}}(x_j-x_k)=W_{\sigma\sqrt{2}}(x_j, x_k)$ 
 
 \end{proof}
-\end{document}
+\end{document} 
