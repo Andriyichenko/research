@@ -1,0 +1,141 @@
+\documentclass[dvipdfmx,a4paper,12pt]{jarticle}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{positioning, intersections, calc, arrows.meta, math, through, shadows}
+\usepackage{tcolorbox}
+\tcbuselibrary{theorems,breakable}
+\usepackage{enumerate}
+\usepackage{mathtools}
+\usepackage{otf}
+\usepackage{xspace}
+\usepackage{newpxtext}
+\usepackage[utf8]{inputenc} %中国語コンパイル環境-cjkホットショット
+\usepackage{CJKutf8,CJKspace,CJKpunct} %中国語コンパイル環境
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{okumacro} %漢字ruby
+\renewcommand{\abstractname}{注意事項}
+\newtagform{textbf}[	extbf]{[}{]}
+\usetagform{textbf}
+\newcommand*{\ie}{\textbf{\textit{i.e.}}\@\xspace}
+\renewcommand{\qedsymbol}{$\blacksquare$}
+\newtcbtheorem[]{reidai}{例題}
+{fonttitle=\gtfamily\sffamily\bfseries\upshape\large,
+colframe=black,colback=black!15!white,
+rightrule=1pt,leftrule=1pt,bottomrule=2pt,
+colbacktitle=black,theorem style=standard,breakable,arc=10pt}
+{tha}
+\renewcommand{\thefootnote}{\arabic{footnote}}
+\newtheoremstyle{mystyle}%
+  {}%                      % 上部スペース
+  {}%                      % 下部スペース
+  {}%                      % 本文フォント
+  {}%                      % 1行目のインデント量
+  {\bfseries}%             % 見出しフォント
+  :%                       % 見出し後の句読点
+  { }%                     % 見出し後のスペース
+  {\thmname{#1}\thmnumber{ #2}\thmnote{ (#3)}}
+\theoremstyle{mystyle}
+% \setcounter{section}{0}
+% \stepcounter{section}
+% セクションカウンターを使用するが、表示はしない新しいセクションコマンドを作成
+\newtheorem{dfn}{\texttt{Def.}}[section]
+\newtheorem{exm}[dfn]{\texttt{Ex.}}
+\newtheorem{prop}[dfn]{\texttt{Prop.}}
+\newtheorem{lem}[dfn]{\texttt{Lem.}}
+\newtheorem{thm}[dfn]{\texttt{Thm.}}
+\newtheorem{cor}[dfn]{\texttt{Cor.}}
+\newtheorem{rem}[dfn]{\texttt{Rem.}}
+\newtheorem{fact}[dfn]{\texttt{Fact}}
+\renewcommand{\qedsymbol}{$\blacksquare$}
+\usepackage{lipsum} % 用于生成示例文本
+\usepackage{float} % 强制浮动
+\usepackage{tikz} % 用于定位
+%排版
+\newcommand{\kai}%解答
+{\noindent
+\begin{tikzpicture}[scale=0.2, baseline=2.8pt]
+\draw (3.3,1.2) node{\large\textgt{解 答}};
+\draw[thick, rounded corners=3pt,] (0,0)--(6.5,0)--(6.5,2.4)--(0,2.4)--cycle;
+\end{tikzpicture}}
+\newcommand{\shomei}%証明
+{\noindent
+\begin{tikzpicture}[scale=0.2, baseline=2.8pt]
+\draw (3.3,1.2) node{\textgt{証 明}};
+\draw[double,thick,rounded corners=3pt,] (0,0)--(6.5,0)--(6.5,2.4)--(0,2.4)--cycle;
+\end{tikzpicture};}
+%補足
+\newcommand{\hosoku}{\noindent
+\begin{tikzpicture}[scale=0.2, baseline=2.8pt]
+\draw (6,1) node{\large\textgt{補足}};
+\fill (0,1)--(1,0)--(2,1)--(1,2)--cycle;
+\fill[gray] (1,1)--(2,0)--(3,1)--(2,2)--cycle;
+\fill (2,1)--(3,0)--(4,1)--(3,2)--cycle;
+\fill (10,1)--(11,0)--(12,1)--(11,2)--cycle;
+\fill[gray] (9,1)--(10,0)--(11,1)--(10,2)--cycle;
+\fill (8,1)--(9,0)--(10,1)--(9,2)--cycle;
+\end{tikzpicture};}
+%注意
+\newcommand{\chui}{\noindent
+\begin{tikzpicture}[scale=0.2, baseline=2.8pt]
+\fill (0,0)--(6.5,0)--(6.5,2.2)--(0,2.2);
+\draw (3.3,1) node[white]{\large\textgt{注意！}};
+\draw[thick] (0,0)--(6.5,0)--(6.5,2.2)--(0,2.2)--cycle;
+\end{tikzpicture};}
+\title{\vspace{-3cm}\textbf{\Large 推定関数$\hat{p}$は確率密度関数の証明}}  %タイトル
+\author{\texttt{YI Ran} - $\mathnormal{21122200512}$\\ \texttt{andreyi@outlook.jp}}  %著者名
+\date{}  %日付
+\begin{document}
+\maketitle
+%\vspace{-0.4cm}
+%\begin{figure}[H]
+%\centering
+%\begin{tikzpicture}[remember picture, overlay]
+%   \node[anchor=north east] at (current page.north east) {%
+%        \includegraphics[width=2cm]{pics/qr.png} % 修正图片地址
+%    };
+%    \node[anchor=north east, yshift=-2cm] at (current page.north east) {デジタル版はここ};
+%\end{tikzpicture}
+%\label{fig:my_label}
+%\end{figure}
+%\begin{abstract} %概要
+  %注意事項
+%\end{abstract}
+%\begin{reidai}{2次方程式}{解答}
+%\end{reidai}
+%\begin{proof}
+%\end{proof}
+\section*{\textbf{問題}}
+
+\noindent
+$W_{\sigma}(x,x_k)=\dfrac{1}{\sqrt{2\pi}\sigma} e^{-\frac{1}{2\sigma^2}|x-x_k|^2}  $とし、その推定関数を$\hat{p}(x)=\displaystyle\dfrac{1}{N}\sum_{k=1}^{N}W_{\sigma}(x,x_k)$とする。$\hat{p}(x)$は密度関数になることを証明せよ。
+
+\section*{\textbf{解答}}
+
+\begin{proof}
+  非負化と正規化から証明します。\\
+
+\noindent
+\textbf{\large 非負化の証明:}\\
+
+$W_{\sigma}(x,x_k)=\dfrac{1}{\sqrt{2\pi}\sigma} e^{-\frac{1}{2\sigma^2}|x-x_k|^2} \sim \mathcal{N}(x_k,\sigma^2)$なので、正規分布の密度関数の定義によって、 $ W_{\sigma}(x,x_k) \geq 0$ が成り立つことがわかる。
+したがって、 $ \hat{p}(x)=\displaystyle\dfrac{1}{N}\sum_{k=1}^{N}W_{\sigma}(x,x_k) \geq 0 $ となる。\\
+
+\noindent
+\textbf{\large 正規化の証明:}\\
+
+\noindent
+$$
+\int_{-\infty}^{\infty} \hat{p}(x) dx = \int_{-\infty}^{\infty} \left( \dfrac{1}{N}\sum_{k=1}^{N}W_{\sigma}(x,x_k) \right) dx \overset{N<\infty}{=} \dfrac{1}{N}\sum_{k=1}^{N} \int_{-\infty}^{\infty} W_{\sigma}(x,x_k) dx
+$$
+
+\noindent
+ここで、 $ \displaystyle\int_{-\infty}^{\infty} W_{\sigma}(x,x_k) =\int_{-\infty}^{\infty} \dfrac{1}{\sqrt{2\pi}\sigma}e^{-\frac{1}{2\sigma^2} |x-x_k|^2}=1$であるので、
+$ \displaystyle\int_{-\infty}^{\infty} \hat{p}(x) dx=\displaystyle\dfrac{1}{N}\sum_{k=1}^{N}\int_{-\infty}^{\infty}W_{\sigma}(x,x_k)=\dfrac{1}{N}\cdot N= 1$ となる。\ie $\displaystyle\int_{-\infty}^{\infty} \hat{p} (x) dx = 1$である。\\
+
+\noindent
+以上より、推定関数 $ \hat{p}(x) $は確率密度関数の性質を満たすことがわかる。
+\end{proof}
+
+\end{document}

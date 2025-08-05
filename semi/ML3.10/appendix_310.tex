@@ -1,0 +1,81 @@
+\section{\\証明問題}
+
+\subsection{\\畳み込みの証明}
+\begin{reidai}{畳み込みの証明}{解答}
+$W_{\sigma(x, x_k)} = \frac{1}{\sqrt{2\pi\sigma}} e^{-\frac{1}{2\sigma^2}|x-x_k|^2}\sim \mathcal{N}(x_k,\sigma^2),\ W_\sigma(x, x_j) = \frac{1}{\sqrt{2\pi\sigma}} e^{-\frac{1}{2\sigma^2}|x-x_j|^2}\sim \mathcal{N}(x_k,\sigma^2)$とし、
+windowがガウシアンの場合、$W_\sigma(x, x') = \phi_\sigma(x - x')$ であり、$\phi_\sigma(t) = \frac{1}{\sqrt{2\pi\sigma}} e^{-\frac{t^2}{2\sigma^2}}$ である。
+$ \displaystyle\int \phi_{\sigma}(x-x_k)\phi_{\sigma}(x-x_j)dx \displaystyle\overset{t=x-x_k}{=}\int \phi_{\sigma}(t)\phi_{\sigma}(t-(x_j-x_k))dt=\displaystyle (\phi_{\sigma}\ast\phi_{\sigma})(x_j-x_k)$はなぜ$x_j-x_k$の確率密度関数になるのか？
+\end{reidai}
+\kai \\
+
+\noindent
+\begin{proof}
+
+$W=x_j-x_k$,\ $X=x-x_k$,\ $Y=x_j-x$,\ $W$の密度関数を$f_{W}(w)$とすると、$W=((x-x_k)+(x_j-x))=X+Y$となる。したがって、
+$$
+F_{W}(w)=P(W\leq w)=\displaystyle\int_{-\infty}^{w}f_{W}(w)dw\ \implies\ f_{W}(w)=\frac{d}{dw}F_{W}(w)
+$$ 
+
+\noindent
+$f_{W}(w)$は微積分学の基本原理を用いて$F_{W}(w)$を微分する式である。\\
+
+\noindent
+次に、$F_{W}(w)$は同時確率密度関数,$X$と$Y$は独立な確率変数であるため、$F_{W}(w)=P(X+Y\leq w)=\displaystyle \iint_{\{x+y\leq w\}} f_{XY}(x,y)dxdy\overset{indep.}{=}\iint_{\{x+y\leq w\}} f_{X}(x)f_{Y}(y)dxdy$となる。
+$w\in \mathbb{R}$であるので、一番外のyの積分の範囲は$-\infty$から$\infty$までであり、内の$x$の積分の範囲は$x\leq w-y$により、$-\infty$から$w-y$までである。\\
+
+\noindent
+したがって、以下のように書き換えることができる：
+$$
+  F_{W}(w)=\int_{-\infty}^{\infty} f_{Y}(y)\left(\int_{-\infty}^{w-y} f_{X}(x)dx\right)dy
+$$
+ここで、$x=w-y$とおくと、$-\infty< w-y\leq w-y\ \implies\ -\infty < w\leq w$となる。一方で、$\dfrac{dx}{dw}=1$である。以下のように書ける：
+$$
+\int_{-\infty}^{\infty} f_{Y}(y)\left(\int_{-\infty}^{w-y} f_{X}(x)dx\right)dy=\int_{-\infty}^{\infty} f_{Y}(y)\left(\int_{-\infty}^{w} f_{X}(w-y)dw\right)dy
+$$
+\noindent
+したがって、
+\begin{align*}
+  f_{W}(w)=\dfrac{d}{dw}F_{W}(w)&=\int_{-\infty}^{\infty} f_{Y}(y)\ \dfrac{d}{dw}\left(\int_{-\infty}^{w} f_{X}(w-y)dw\right)dy  \\
+  &=\int_{-\infty}^{\infty} f_{Y}(y)f_{X}(w-y)dy \\
+  &=\int_{-\infty}^{\infty} \phi_{\sigma}(x_j-x)\phi_{\sigma}(x-x_k)dx \\
+  &=\int_{-\infty}^{\infty} \phi_{\sigma}(x-x_k)\phi_{\sigma}(x-x_j)dx \quad \Leftarrow({\footnotesize \text{\color{red} 正規分布の密度関数は偶関数なので}})\\
+  &=(\phi_{\sigma}\ast\phi_{\sigma})(x_j-x_k)=f_{x+y}(w)
+\end{align*}
+ここで、$t=x-x_k$とおくと、$\dfrac{dt}{dx}=1$であるため、$f_{W}(t)=\displaystyle\int_{-\infty}^{\infty} \phi_{\sigma}(t)\phi_{\sigma}(t-(x_j-x_k))dt = (\phi_{\sigma}\ast\phi_{\sigma})(x_j-x_k)$となる。\ie $(\phi_{\sigma}\ast\phi_{\sigma})(x_j-x_k)\sim \mathcal{N}(x_j-x_k,2\sigma^2)$\\
+
+\noindent
+したがって、$(\phi_{\sigma}\ast\phi_{\sigma})(x_j-x_k)=\phi_{\sigma\sqrt{2}}(x_j-x_k)=W_{\sigma\sqrt{2}}(x_j, x_k)$ 
+
+\end{proof}
+
+\subsection{推定関数は確率密度関数の証明}
+\begin{reidai}{推定関数は確率密度関数の証明}{解答}
+  $W_{\sigma}(x,x_k)=\dfrac{1}{\sqrt{2\pi}\sigma} e^{-\frac{1}{2\sigma^2}|x-x_k|^2}  $とし、その推定関数を$\hat{p}(x)=\displaystyle\dfrac{1}{N}\sum_{k=1}^{N}W_{\sigma}(x,x_k)$とする。$\hat{p}(x)$は密度関数になることを証明せよ。
+\end{reidai}
+\kai \\
+
+\noindent
+\begin{proof}
+  非負化と正規化から証明します。\\
+
+\noindent
+\textbf{\large 非負化の証明:}\\
+
+$W_{\sigma}(x,x_k)=\dfrac{1}{\sqrt{2\pi}\sigma} e^{-\frac{1}{2\sigma^2}|x-x_k|^2} \sim \mathcal{N}(x_k,\sigma^2)$なので、正規分布の密度関数の定義によって、 $ W_{\sigma}(x,x_k) \geq 0$ が成り立つことがわかる。
+したがって、 $ \hat{p}(x)=\displaystyle\dfrac{1}{N}\sum_{k=1}^{N}W_{\sigma}(x,x_k) \geq 0 $ となる。\\
+
+\noindent
+\textbf{\large 正規化の証明:}\\
+
+\noindent
+$$
+\int_{-\infty}^{\infty} \hat{p}(x) dx = \int_{-\infty}^{\infty} \left( \dfrac{1}{N}\sum_{k=1}^{N}W_{\sigma}(x,x_k) \right) dx \overset{N<\infty}{=} \dfrac{1}{N}\sum_{k=1}^{N} \int_{-\infty}^{\infty} W_{\sigma}(x,x_k) dx
+$$
+
+\noindent
+ここで、 $ \displaystyle\int_{-\infty}^{\infty} W_{\sigma}(x,x_k) =\int_{-\infty}^{\infty} \dfrac{1}{\sqrt{2\pi}\sigma}e^{-\frac{1}{2\sigma^2} |x-x_k|^2}=1$であるので、
+$ \displaystyle\int_{-\infty}^{\infty} \hat{p}(x) dx=\displaystyle\dfrac{1}{N}\sum_{k=1}^{N}\int_{-\infty}^{\infty}W_{\sigma}(x,x_k)=\dfrac{1}{N}\cdot N= 1$ となる。\ie $\displaystyle\int_{-\infty}^{\infty} \hat{p} (x) dx = 1$である。\\
+
+\noindent
+以上より、推定関数 $ \hat{p}(x) $は確率密度関数の性質を満たすことがわかる。
+\end{proof}
