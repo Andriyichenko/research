@@ -28,7 +28,7 @@ $\mathbb{E}[(Z - f(X; \theta))^2]$\ の値が小さいほどモデルの予測�
 \begin{dfn}[\textbf{二次Renyiエントロピー(Quadratic Renyi Entropy)}]\label{def:renyi-entropy}
   この推定ではParzen window法を使用する。まず密度関数$p(x)$をwindow $W_\sigma$を用いたサンプルベース密度関数で置き換える：
 
-$$\hat{p}(x) = \frac{1}{N} \sum_{k=1}^{K} W_\sigma(x, x_k).$$
+$$\hat{p}(x) = \frac{1}{N} \sum_{k=1}^{N} W_\sigma(x, x_k).$$
 
 \noindent
 簡単のため、windowを一次元ガウシアンと仮定する：
@@ -56,7 +56,7 @@ windowがガウシアンの場合、$W_\sigma(x, x') = \phi_\sigma(x - x')$ で�
 $$(\phi_\sigma * \phi_\sigma)(x_j - x_k)=W_{\sigma\sqrt{2}}(x_j, x_k)$$
 \footnotetext[1]{
 一般に、独立な2つの確率変数 $X_1, X_2$ の確率密度関数を $p_1(x), p_2(x)$ とすると、その和 $X_1 + X_2$ の確率密度関数 $p(x)$ は、その畳み込み (convolution) $p_1 * p_2(x)$、\ie 、$
-p(x) = p_1 * p_2(x)= \int_{-\infty}^{\infty} p_1(y)p_2(x-y) \, dy$となる,その証明はAppendixを参照してください。
+p(x) = p_1 * p_2(x)= \int_{-\infty}^{\infty} p_1(y)p_2(x-y) \, dy$となる,その証明は\ref*{convolution-proof}を参照してください。
 }
 
 \footnotetext[2]{$X_1 \sim N(\mu_1, \sigma_1^2)$, $X_2 \sim N(\mu_2, \sigma_2^2)$ とするとき, $a_1 X_1 + a_2 X_2 \sim N(a_1 \mu_1 + a_2 \mu_2, a_1^2 \sigma_1^2 + a_2^2 \sigma_2^2)$ となることが知られています。これを、\textbf{正規分布の再生性}といいます。}
@@ -77,7 +77,7 @@ $$C(p_Z, p_Y) = \int |p_Z(u) - p_Y(u)|^2 du$$
 
 は二次ポテンシャルエネルギーを用いて次のように書ける：
 \begin{align*}
-C(p_Z, p_Y) &= \int p_Z(u) du + \int p_Y(u) du - 2 \int p_Z(u)p_Y(u) du\\
+C(p_Z, p_Y) &= \int p_Z(u)^2 du + \int p_Y(u)^2 du - 2 \int p_Z(u)p_Y(u) du\\
 &= U(p_Z) + U(p_Y) - 2 \int p_Z(u)p_Y(u) du.
 \end{align*}
 ここで $U(p)$ は前に定義された密度 $p$ の二次ポテンシャルエネルギーを表す。そこで推定は次の形をとる：
@@ -85,19 +85,19 @@ C(p_Z, p_Y) &= \int p_Z(u) du + \int p_Y(u) du - 2 \int p_Z(u)p_Y(u) du\\
 $$C(\hat{p}_Z, \hat{p}_Y) = U(\hat{p}_Z) + U(\hat{p}_Y) - 2 \int \hat{p}_Z(u)\hat{p}_Y(u) du.$$
 
 \noindent
-最初の2つの項は既に計算されている。積分項の計算を行えばよい、これは\textit{Renyiクロスエントロピー}とも呼ばれる。したがって、以下のようになる：
+上の式によって、その積分項の計算を行えばよい。これは\textit{Renyiクロスエントロピー}とも呼ばれる。したがって、以下のようになる：
 
 \begin{align*}
 \int \hat{p}_Z(u)\hat{p}_Y(u) du &= \int \frac{1}{N} \sum_{j=1}^N W_\sigma(u, z_j) \frac{1}{N'} \sum_{k=1}^{N'} W_\sigma(u, y_k) du \\
-&= \frac{1}{NN'} \sum_{j=1}^N \sum_{k=1}^{N'} \int W_\sigma(u, z_j)W_\sigma(u, y_k) du \\
+&\stackrel{N<\infty}{=} \frac{1}{NN'} \sum_{j=1}^N \sum_{k=1}^{N'} \int W_\sigma(u, z_j)W_\sigma(u, y_k) du \\
 &= \frac{1}{NN'} \sum_{j=1}^N \sum_{k=1}^{N'} W_{\sigma\sqrt{2}}(z_j, y_k) \\
-&= \frac{1}{NN'} \sum_{j=1}^N \sum_{k=1}^{N'} W_{\sigma\sqrt{2}}(z_j, f(x_j; \theta)),
+&= \frac{1}{NN'} \sum_{j=1}^N \sum_{k=1}^{N'} W_{\sigma\sqrt{2}}(z_j, f(x_k; \theta)),
 \end{align*}
 
 ここで $y = f(x; \theta)$ はニューラルネットの入力-出力写像である。したがって、次の推定を得る：
 
 $$C(p_Z, \hat{p}_Y) = \frac{1}{N^2} \sum_{j=1}^N \sum_{k=1}^N W_{\sigma\sqrt{2}}(z_j, z_k) + \frac{1}{N'^2} \sum_{j=1}^{N'} \sum_{k=1}^{N'} W_{\sigma\sqrt{2}}(f(x_j; \theta), f(x_k; \theta))$$
-$$- \frac{2}{NN'} \sum_{j=1}^N \sum_{k=1}^{N'} W_{\sigma\sqrt{2}}(z_j, f(x_j; \theta)).$$
+$$- \frac{2}{NN'} \sum_{j=1}^N \sum_{k=1}^{N'} W_{\sigma\sqrt{2}}(z_j, f(x_k; \theta)).$$
 \end{dfn}
 \section{\textbf{Maximum Mean Discrepancy(MMD)}}
 \begin{dfn}[\textbf{最大平均乖離(MMD)}]\label{def:mmd}

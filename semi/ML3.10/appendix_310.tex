@@ -1,6 +1,6 @@
 \section{\\証明問題}
 
-\subsection{\\畳み込みの証明}
+\subsection{\\畳み込みの証明}\label{convolution-proof}
 \begin{reidai}{畳み込みの証明}{解答}
 $W_{\sigma(x, x_k)} = \frac{1}{\sqrt{2\pi\sigma}} e^{-\frac{1}{2\sigma^2}|x-x_k|^2}\sim \mathcal{N}(x_k,\sigma^2),\ W_\sigma(x, x_j) = \frac{1}{\sqrt{2\pi\sigma}} e^{-\frac{1}{2\sigma^2}|x-x_j|^2}\sim \mathcal{N}(x_k,\sigma^2)$とし、
 windowがガウシアンの場合、$W_\sigma(x, x') = \phi_\sigma(x - x')$ であり、$\phi_\sigma(t) = \frac{1}{\sqrt{2\pi\sigma}} e^{-\frac{t^2}{2\sigma^2}}$ である。
