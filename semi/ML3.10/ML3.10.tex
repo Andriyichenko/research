@@ -102,16 +102,20 @@ $$- \frac{2}{NN'} \sum_{j=1}^N \sum_{k=1}^{N'} W_{\sigma\sqrt{2}}(z_j, f(x_k; \t
 \section{\textbf{Maximum Mean Discrepancy(MMD)}}
 \begin{dfn}[\textbf{最大平均乖離(MMD)}]\label{def:mmd}
   maximum mean discrepancy は2つの分布間の差異を測る指標です。 これは2つの分布に対応する期待値間の差異を表す関数空間上での上界です。
-すべての実用的な目的において、確率変数 $X$ は分布 $p(x)$ から抽出された $n$ 個の観測値 $x_1, \ldots, x_n$ のサンプルから知られる。同様に、確率変数 $Y$ は分布 $q(y)$ から抽出された $m$ 個の観測値 $y_1, \ldots, y_m$ のサンプルから知られる。平均は次のように平均として推定される：
+すべての実用的な目的において、確率変数 $X$ は分布 $p(x)$ から無作為に抽出された $n$ 個の観測値 $x_1, \ldots, x_n$ のサンプルから知られる、$X\stackrel{i.i.d}{\sim}p(x)$。同様に、確率変数 $Y$ は分布 $q(y)$ から無作為に抽出された $m$ 個の観測値 $y_1, \ldots, y_m$ のサンプルから知られる、$Y\stackrel{i.i.d}{\sim}q(y)$。期待値は次のように不偏平均として推定される：
 
-$$\mathbb{E}_{X \sim p}[\phi(X)] = \frac{1}{n} \sum_{i=1}^n \phi(x_i),$$
+$$\mathbb{E}_{X \sim p}[\phi(X)] \approx \frac{1}{n} \sum_{i=1}^n \phi(x_i),$$
 
-$$\mathbb{E}_{Y \sim q}[\phi(Y)] = \frac{1}{m} \sum_{i=1}^m \phi(y_i),$$
+$$\mathbb{E}_{Y \sim q}[\phi(Y)] \approx \frac{1}{m} \sum_{i=1}^m \phi(y_i),$$
+
+次に、大数の法則によって、
+ $$ \frac{1}{n} \sum_{i=1}^{n} \phi(x_i) \xrightarrow{n \to \infty} \mathbb{E}_{X \sim p}[\phi(X)],\ \frac{1}{m} \sum_{i=1}^{m} \phi(y_i) \xrightarrow{m \to \infty} \mathbb{E}_{Y \sim q}[\phi(Y)] $$
 
 そして $p$ と $q$ の間の最大平均乖離は、前の2つのサンプルを用いて次のように推定できる：
 
 \begin{align*}
-d_{MMD}(p, q) &= \left\|\frac{1}{n} \sum_{i=1}^n \phi(x_i) - \frac{1}{m} \sum_{i=1}^m \phi(y_i)\right\|^2 \\
+d_{MMD}(p, q) &= \left\|\mathbb{E}_{X \sim p}[\phi(X)] - \mathbb{E}_{Y \sim q}[\phi(Y)]\right\|^2 \\
+&= \left\|\frac{1}{n} \sum_{i=1}^n \phi(x_i) - \frac{1}{m} \sum_{i=1}^m \phi(y_i)\right\|^2 \\
 &= \left(\frac{1}{n} \sum_{i=1}^n \phi(x_i) - \frac{1}{m} \sum_{i=1}^m \phi(y_i)\right)^T \left(\frac{1}{n} \sum_{i=1}^n \phi(x_i) - \frac{1}{m} \sum_{i=1}^m \phi(y_i)\right) \\
 &= \frac{1}{n^2} \sum_{i,j} K(x_i, x_j) + \frac{1}{m^2} \sum_{i,j} K(y_i, y_j) - \frac{2}{mn} \sum_{i,j} K(x_i, y_j), 
 \end{align*}
