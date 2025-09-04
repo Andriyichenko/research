@@ -3,6 +3,16 @@
 \begin{document}
 \maketitle
 \vspace{-0.4cm}
+\begin{figure}[H] 
+  \centering
+  \begin{tikzpicture}[remember picture, overlay]
+      \node[anchor=north east] at (current page.north east) {
+          \includegraphics[width=2cm]{pic3.11.png} 
+      };
+      \node[anchor=north east, yshift=-2cm] at (current page.north east) {PDF版はここ$\uparrow$};
+  \end{tikzpicture}
+  \label{fig:my_label}
+\end{figure}
 \section{\textbf{Regularization}}
 \thispagestyle{plain}
 過学習を避けるために，コスト関数には追加の項を含めることがあります。
