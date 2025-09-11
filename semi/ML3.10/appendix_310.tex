@@ -11,7 +11,7 @@ $ \displaystyle\int \phi_{\sigma}(x-x_k)\phi_{\sigma}(x-x_j)dx \displaystyle\ove
 \noindent
 \begin{proof}
 
-確率変数(Random Variance)$W$の変数を$x_j-x_k$,\ 確率変数(R.V.)$X$の変数を$x-x_k$,\ 確率変数(R.V.)$Y$の変数を$x_j-x$,\ $W$の密度関数を$f_{W}(w)$とすると、$W=((x-x_k)+(x_j-x))=X+Y$となる。したがって、
+確率変数(Random Variance)$W$の値を$x_j-x_k$,\ 確率変数(R.V.)$X$の値を$x-x_k$,\ 確率変数(R.V.)$Y$の変数を$x_j-x$,\ $W$の密度関数を$f_{W}(w)$とすると、$W=((x-x_k)+(x_j-x))=X+Y$となる。したがって、
 $$
 F_{W}(w)=P(W\leq w)=\displaystyle\int_{-\infty}^{w}f_{W}(w)dw\ \implies\ f_{W}(w)=\frac{d}{dw}F_{W}(w)
 $$ 
@@ -28,14 +28,14 @@ $w\in \mathbb{R}$であるので、一番外のyの積分の範囲は$-\infty$�
 $$
   F_{W}(w)=\int_{-\infty}^{\infty} f_{Y}(y)\left(\int_{-\infty}^{w-y} f_{X}(x)dx\right)dy
 $$
-ここで、$x=w-y$とおくと、$-\infty< w-y\leq w-y\ \implies\ -\infty < w\leq w$となる。一方で、$\dfrac{dx}{dw}=1$である。以下のように書ける：
+ここで、$z=x+y$とおくと、$-\infty< z-y\leq w-y\ \implies\ -\infty < z\leq w$となる。一方で、$\dfrac{dx}{dz}=1$である。以下のように書ける：
 $$
-\int_{-\infty}^{\infty} f_{Y}(y)\left(\int_{-\infty}^{w-y} f_{X}(x)dx\right)dy=\int_{-\infty}^{\infty} f_{Y}(y)\left(\int_{-\infty}^{w} f_{X}(w-y)dw\right)dy
+\int_{-\infty}^{\infty} f_{Y}(y)\left(\int_{-\infty}^{w-y} f_{X}(x)dx\right)dy=\int_{-\infty}^{\infty} f_{Y}(y)\left(\int_{-\infty}^{w} f_{X}(z-y)dz\right)dy
 $$
 \noindent
 したがって、
 \begin{align*}
-  f_{W}(w)=\dfrac{d}{dw}F_{W}(w)&=\int_{-\infty}^{\infty} f_{Y}(y)\ \dfrac{d}{dw}\left(\int_{-\infty}^{w} f_{X}(w-y)dw\right)dy  \\
+  f_{W}(w)=\dfrac{d}{dw}F_{W}(w)&=\int_{-\infty}^{\infty} f_{Y}(y)\ \left[\dfrac{d}{dw}\int_{-\infty}^{w} f_{X}(z-y)dz\right]dy  \\
   &=\int_{-\infty}^{\infty} f_{Y}(y)f_{X}(w-y)dy \\
   &=\int_{-\infty}^{\infty} \phi_{\sigma}(x_j-x)\phi_{\sigma}(x-x_k)dx \\
   &=\int_{-\infty}^{\infty} \phi_{\sigma}(x-x_k)\phi_{\sigma}(x-x_j)dx \quad \Leftarrow({\footnotesize \text{\color{red} 正規分布の密度関数は偶関数なので}})\\
