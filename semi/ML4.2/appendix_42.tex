@@ -1,0 +1,51 @@
+\section{\\証明問題}
+
+\subsection{\\Cauchy-Schwarzの不等式}\label{convolution-proof}
+\begin{reidai}{Cauchy-Schwarzの不等式の証明}{解答}
+$ a,b \in \mathbb{R}^n $ に対して、次の不等式を証明せよ。
+\[ |\langle a, b \rangle| \le \|a\| \|b\| \]
+等号成立の条件も述べよ。
+\end{reidai}
+\kai \\
+
+\noindent
+\begin{proof}
+  $ a,b \in \mathbb{R}^n $ に対して、$ t \in \mathbb{R} $ とすると、次の式が成り立つ。
+  \[
+    0 \leq \|a - t b\|^2 = \langle a - t b, a - t b \rangle = \|a\|^2 - 2t \langle a, b \rangle + t^2 \|b\|^2
+  \]
+  右辺は $ t $ に関する二次式であり、常に非負であるため、判別式$\Delta\le 0$が必要がある。すなわち、
+  \[
+    (-2 \langle a, b \rangle)^2 - 4 \|b\|^2 \|a\|^2 \leq 0
+  \]
+  これを整理すると、Cauchy-Schwarzの不等式が得られる。
+  \[
+    |\langle a, b \rangle| \leq \|a\| \|b\|
+  \]
+  等号成立の条件は、$ a $ と $ b $ が線形従属である場合、すなわち、あるスカラー $ k\in T\subset \{\mathbb{R}\cup \mathbb{C}\} $ が存在して $ a = k b $ または $ b = k a $ が成り立つ場合である。
+
+\end{proof}
+\newpage
+\subsection{三角不等式の証明}\label{triangle-inequality}
+\begin{reidai}{三角不等式の証明}{解答}
+  任意のベクトル $ a, b \in \mathbb{R}^n $ に対して、次の不等式を証明せよ。
+  \[
+    \|a + b\| \leq \|a\| + \|b\|
+  \]
+\end{reidai}
+\kai \\
+
+\noindent
+\begin{proof}
+  ベクトル $ a, b \in \mathbb{R}^n $ に対して、次の式が成り立つ。
+  \begin{align*}
+    \|a + b\|^2 &= \langle a + b, a + b \rangle \\
+    &= \|a\|^2 + 2\langle a, b \rangle + \|b\|^2 \\
+    &\leq \|a\|^2 + 2\|a\|\|b\| + \|b\|^2 \quad (\text{Cauchy-Schwarzの不等式より}) \\
+    &= (\|a\| + \|b\|)^2
+  \end{align*}
+  両辺の平方根を取ると、三角不等式が得られる。
+  \[
+    \|a + b\| \leq \|a\| + \|b\|
+  \]
+\end{proof}

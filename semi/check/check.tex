@@ -1,0 +1,24 @@
+\documentclass{jsarticle}
+\usepackage{amsmath} 
+\author{\texttt{Andre YI}}
+\title{Check a(x)}
+\date{}
+\begin{document} 
+\maketitle
+\noindent
+$Y_t =h(X_t),\ h'(x)=\dfrac{1}{\sigma(x)}$、ここで $ \sigma(x) = \sqrt{x^2 + 1} $ である。\\
+よって、\\[0.5em]
+$$ h'(x) = \dfrac{1}{\sqrt{x^2 + 1}}\ \implies\ h(x) = \mathrm{arcsinh}(x)= \ln\left( x + \sqrt{x^2 + 1} \right) $$
+伊藤公式より、\\[0.5em]
+$$ dY_t = h'(X_t)dX_t + \dfrac{1}{2}h''(X_t)\sigma^2(X_t)dt \cdots\cdots (1)$$
+ここで、\\[0.5em]
+$$ h'(X)= \dfrac{1}{\sqrt{X^2 + 1}},\ h''(X) = -\dfrac{X}{(X^2 + 1)^{3/2}} $$
+次に、 $ dX_t=a(X_t)dt + \sigma(X_t)dW_t $と $ \sigma^2(X_t)=X_t^2+1 $を$(1)$式に代入すると、\\[0.5em]
+\begin{align*}
+dY_t &= \frac{1}{\sqrt{X_t^2 + 1}} \left[ a(X_t) dt + \sigma(X_t) dW_t \right] + \frac{1}{2} \left( - \frac{X_t}{(X_t^2 + 1)^{3/2}} \right) (X_t^2 + 1) dt \\
+&= \left[ \frac{a(X_t)}{\sqrt{X_t^2 + 1}} - \frac{X_t}{2\sqrt{X_t^2 + 1}} \right] dt + \frac{\sigma(X_t)}{\sqrt{X_t^2 + 1}} dW_t.
+\end{align*}
+ここで、$\sigma(X_t)=\sqrt{X_t^2+1}$,\ $ \sigma'(X_t)=\frac{X_t}{\sqrt{X_t^2+1}} $,\ $ a(X_t)=\dfrac{X_t}{2}+\dfrac{\sqrt{X_t^2+1}}{2} $ である。\\
+したがって、\\[0.5em]
+$$ dY_t = \left[ \frac{X_t +\sqrt{X_t^2 + 1}}{2\sqrt{X_t^2 + 1}} - \frac{X_t}{2\sqrt{X_t^2 + 1}} \right] dt +dW_t=\dfrac{1}{2}dt +dW_t $$
+\end{document}
