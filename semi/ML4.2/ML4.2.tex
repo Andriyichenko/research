@@ -3,17 +3,18 @@
 \begin{document}
 \maketitle
 \vspace{-0.4cm}
-% \begin{figure}[H] 
-%   \centering
-%   \begin{tikzpicture}[remember picture, overlay]
-%       \node[anchor=north east] at (current page.north east) {
-%           \includegraphics[width=2cm]{3.10.png} 
-%       };
-%       \node[anchor=north east, yshift=-2cm] at (current page.north east) {PDF版はここ$\uparrow$};
-%   \end{tikzpicture}
-%   \label{fig:my_label}
-% \end{figure}
+\begin{figure}[H] 
+  \centering
+  \begin{tikzpicture}[remember picture, overlay]
+      \node[anchor=north east] at (current page.north east) {
+          \includegraphics[width=2cm]{pics/ml4.2.png} 
+      };
+      \node[anchor=north east, yshift=-2cm] at (current page.north east) {PDF版はここ$\uparrow$};
+  \end{tikzpicture}
+  \label{fig:my_label}
+\end{figure}
 \section{\texttt{Steepest Descent}(最急降下方向法)}
+\thispagestyle{plain}
 \noindent
 小さなステップ幅 \ruby{\raisebox{2pt}{$\eta$}}{エータ}$>0$ を与えられたとき，
 点 \(x^0\) において関数 \(f:\mathbb{R}^n\to\mathbb{R}\) をもっとも減少させる
