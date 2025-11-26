@@ -64,14 +64,16 @@ $\nu^* = -\frac{\nabla f(x^0)}{\|\nabla f(x^0)\|}$となる証明
 制約条件に代入して
 \[ \|\nu\|^2 = \frac{1}{4\lambda^2}\|\nabla f(x^0)\|^2 = 1 \]
 を得る。したがって
-\[ \lambda = \pm \frac{1}{2}\|\nabla f(x^0)\| \]
-最小値を与えるのは負号の場合であり，(\ie $\lambda = -\frac{1}{2}\|\nabla f(x^0)\|$),その$\lambda$を$\nu$に代入すると
+\[ \lambda_0 = \frac{1}{2}\|\nabla f(x^0)\|,\, \lambda_1 = -\frac{1}{2}\|\nabla f(x^0)\|\]
+最小値を与えるのは$\lambda_0$の場合であり, その$\lambda_0$を$\nu$に代入すると
 \[ \nu^* = -\frac{\nabla f(x^0)}{\|\nabla f(x^0)\|} \]
+となる。
 \end{proof}
+\noindent
 したがって関数値の最大変化は近似的に
 \[
  f(x^0+\eta \nu^*) - f(x^0)
-   =\eta \langle \nabla f(x^0), \nu^*\rangle\footnotemark[2] = -\eta \|\nabla f(x^0)\|
+   =\eta \langle \nabla f(x^0), \nu^*\rangle\quad\footnotemark[2] = -\eta \dfrac{\langle \nabla f(x^0),\nabla f(x^0)}{\|\nabla f(x^0)\|} = -\eta \|\nabla f(x^0)\|
 \]
 \footnotetext[2]{幾何の視点から考えると、\(\langle \nabla f(x^0), \nu^*\rangle = \|\nabla f(x^0)\|\cdot\|\nu^*\|\cdot\cos\theta = -\|\nabla f(x^0)\|\)となる。ここで、\(\theta\)は\(\nabla f(x^0)\)と\(\nu^*\)のなす角であり、\(\nu^*\)は\(\nabla f(x^0)\)の反対方向を向いているため、\(\theta = \pi\)である。}
 となる。ここで \(\eta\) を \emph{学習率 (learning rate)} と呼ぶ。\\
@@ -168,7 +170,7 @@ $\nu^* = -\frac{\nabla f(x^0)}{\|\nabla f(x^0)\|}$となる証明
 
 
 
-\begin{exm}{峡谷関数の例}
+\begin{exm}{\ruby{峡谷}{きょうこく}関数の例}
   関数
   \[
    f(x,y) = \frac12 y^2 - x,
