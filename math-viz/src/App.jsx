@@ -1,4 +1,4 @@
-import SteepestDescentApp from './SteepestDescentViz'
+import SteepestDescentApp from './4.2_SteepestDescentViz'
 
 function App() {
   return (
