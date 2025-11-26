@@ -58,7 +58,7 @@ $\nu^* = -\frac{\nabla f(x^0)}{\|\nabla f(x^0)\|}$となる証明
 とおく。
 次に$\mathcal{L}$の$\nu$に関する偏微分は$0$にする
 \[ \frac{\partial \mathcal{L}}{\partial \nu}
- = \nabla f(x^0) + 2\lambda \nu = 0 \]
+ = \nabla f(x^0) + 2\lambda \nu = \mathbf{0} \]
 から
 \[ \nu = -\frac{1}{2\lambda}\nabla f(x^0). \]
 制約条件に代入して
@@ -206,7 +206,7 @@ $\nu^* = -\frac{\nabla f(x^0)}{\|\nabla f(x^0)\|}$となる証明
   次に、\((y^n)_n\) が収束する $\overset{\text{iff}}{\Longleftrightarrow} \displaystyle\lim_{n\to\infty} (1-\delta)^n = 0$により、$|1-\delta| < 1\iff 0 < \delta < 2$である。\\
   この範囲で次の二つの挙動が区別される。
   \begin{enumerate}[label=(\roman*), leftmargin=2em]
-  \item \(0<\delta<1\) のとき，$1-\delta \in (1,0)\implies |1 -\delta|<1\implies \displaystyle\lim_{n\to\infty} (1-\delta)^n = 0$。従って、 $(y^n)_n$は収束する。 $x^{n+1}-x^n=\delta\implies$ $(x^n)_n$ は公差 \(\delta\)の
+  \item \(0<\delta<1\) のとき，$1-\delta \in (0,1)\implies |1 -\delta|<1\implies \displaystyle\lim_{n\to\infty} (1-\delta)^n = 0$。従って、 $(y^n)_n$は収束する。 $x^{n+1}-x^n=\delta\implies$ $(x^n)_n$ は公差 \(\delta\)の
         等差数列として増加する。\ie $x^n \le 1\implies x^n = x^0 +n\delta \le 1\implies n\le \dfrac{1-x^0}{\delta}\quad (\delta >0)\implies n = \lfloor\dfrac{1-x^0}{\delta}\rfloor \quad\footnotemark[6]$。図1の\textbf{a}を参照してください。
   \vspace{1em}
   \item \(1<\delta<2\) のとき， $1-\delta <0$と$|1-\delta|<1$より、\(y^n\) は符号を交互に変えながら
