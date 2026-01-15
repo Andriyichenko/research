@@ -2,6 +2,17 @@
 \usepackage{ml4.2.4}
 \begin{document}
 \maketitle
+\vspace{-0.4cm}
+\begin{figure}[H] 
+  \centering
+  \begin{tikzpicture}[remember picture, overlay]
+      \node[anchor=north east] at (current page.north east) {
+          \includegraphics[width=2cm]{pics/ml4.2.4.png} 
+      };
+      \node[anchor=north east, yshift=-2cm] at (current page.north east) {PDF版はここ$\uparrow$};
+  \end{tikzpicture}
+  \label{fig:my_label}
+\end{figure}
 \section{\texttt{Line Search Method} (直線探索法)}
 \thispagestyle{plain}
 通常の最急降下法 (Steepest Descent) では、学習率（ステップ幅）$\eta$ を固定値として扱うのが、\textbf{直線探索法}はこの $\eta$ も最適化の対象とする手法である。
