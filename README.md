@@ -22,6 +22,22 @@
 | 📙 | `ML4.2/` | Optimization-focused materials plus shared artwork under `pics/`. |
 | 🧪 | `test/` | Minimal TeX sandboxes for rapidly prototyping math notation. |
 
+## 📑 PDF 資料一覧 (PDF Directory)
+
+GitHub上でレンダリングされたPDFへ直接アクセスできるクィックリンク集です。
+
+| Module | Description | Link |
+|--------|-------------|------|
+| **ML 2.2** | シグモイド関数 (Sigmoid Function) | [ML2.2.pdf](https://github.com/Andriyichenko/research/blob/main/semi/out/ML2.2.pdf) |
+| | 講義スライド (Slides) | [ml2.2-ppt.pdf](https://github.com/Andriyichenko/research/blob/main/semi/out/ml2.2-ppt.pdf) |
+| **ML 3.5-3.6** | 交差エントロピー (Cross-Entropy) | [ML3.5-3.6.pdf](https://github.com/Andriyichenko/research/blob/main/semi/ML3.5-3.6/out/ML3.5-3.6.pdf) |
+| **ML 3.10** | 平均二乗誤差 (Mean Squared Error) | [ML3.10.pdf](https://github.com/Andriyichenko/research/blob/main/semi/ML3.10/out/ML3.10.pdf) |
+| **ML 3.11** | 正則化 (Regularization) | [ml3.11.pdf](https://github.com/Andriyichenko/research/blob/main/semi/ML3.11/out/ml3.11.pdf) |
+| **ML 4.2** | 最急降下法 (Steepest Descent) | [ML4.2.pdf](https://github.com/Andriyichenko/research/blob/main/semi/ML4.2/out/ML4.2.pdf) |
+| **ML 4.2.4** | 直線探索法 (Line Search Method) | [ML4.2.4.pdf](https://github.com/Andriyichenko/research/blob/main/semi/ML4.2.4/out/ML4.2.4.pdf) |
+| **Proofs** | 畳み込みの証明 (Convolution) | [pf_convolution.pdf](https://github.com/Andriyichenko/research/blob/main/semi/out/pf_convolution.pdf) |
+| | 推定の証明 (Estimation) | [pf_estimation.pdf](https://github.com/Andriyichenko/research/blob/main/semi/out/pf_estimation.pdf) |
+
 ## ⚙️ VS Code Workflow Tips
 
 1. 🚀 **Launch math visualizations**: `cd math-viz && npm install && npm run dev` to preview React demos with hot-reload.
