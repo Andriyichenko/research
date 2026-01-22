@@ -3,6 +3,17 @@
 
 \begin{document}
 \maketitle
+\vspace{-0.4cm}
+\begin{figure}[H] 
+  \centering
+  \begin{tikzpicture}[remember picture, overlay]
+      \node[anchor=north east] at (current page.north east) {
+          \includegraphics[width=2cm]{pics/ml4.3.png} 
+      };
+      \node[anchor=north east, yshift=-2cm] at (current page.north east) {PDF版はここ$\uparrow$};
+  \end{tikzpicture}
+  \label{fig:my_label}
+\end{figure}
 \section{概要}
 \thispagestyle{plain}
 最適化問題における「関数の最小値を探索する」というプロセスは、物理学において\textbf{「谷（ポテンシャル関数の形状）の中に置かれたボールが、重力に従って底まで転がり落ちる運動」}として解釈することができます。
