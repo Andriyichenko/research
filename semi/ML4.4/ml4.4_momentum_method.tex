@@ -2,7 +2,17 @@
 \usepackage{ml4.4}
 \begin{document}
 \maketitle
-
+\vspace{-0.4cm}
+\begin{figure}[H] 
+  \centering
+  \begin{tikzpicture}[remember picture, overlay]
+      \node[anchor=north east] at (current page.north east) {
+          \includegraphics[width=2cm]{pics/ml4.4.png} 
+      };
+      \node[anchor=north east, yshift=-2cm] at (current page.north east) {PDF版はここ$\uparrow$};
+  \end{tikzpicture}
+  \label{fig:my_label}
+\end{figure}
 \section{概要}
 \thispagestyle{plain}
 最急降下法（\text{Gradient Descent}）では、コスト関数の局所解（Local Minimum）に陥る可能性がある。これを回避し、かつ収束を加速させるために考案されたのが\textbf{モーメンタム法（Momentum Method）}である。
