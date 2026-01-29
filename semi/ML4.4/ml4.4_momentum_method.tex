@@ -1,0 +1,398 @@
+\documentclass[dvipdfmx,a4paper,11pt]{jsarticle}
+\usepackage{ml4.4}
+\begin{document}
+\maketitle
+
+\section{概要}
+\thispagestyle{plain}
+最急降下法（\text{Gradient Descent}）では、コスト関数の局所解（Local Minimum）に陥る可能性がある。これを回避し、かつ収束を加速させるために考案されたのが\textbf{モーメンタム法（Momentum Method）}である。
+物理的な直感として、勾配降下法は「質点（ボール）が斜面を転がり落ちる運動」とみなせます。モーメンタム法では、このモデルに\textbf{速度（運動量）}と\textbf{摩擦（Friction）}の概念を導入する。
+
+\begin{itemize}
+    \item \textbf{速度（Velocity）}: 過去の勾配の値を積んで、慣性を持ってエネルギー障壁（Energy Barrier）を乗り越える助けとなる。
+    \item \textbf{摩擦（Friction）}: システムのエネルギーを徐々に散逸させ、ボールが最終的に平衡点（最小値）に静止するようにする。
+\end{itemize}
+
+\textbf{Polyak (1964)} による古典的なモーメンタム法の更新式は以下の通りである。
+\begin{empheq}{align}
+    x^{n+1} &= x^n + v^{n+1} \label{eq:pos_update_polyak} \\
+    v^{n+1} &= \mu v^n - \eta \nabla f(x^n) \label{eq:vel_update_polyak}
+\end{empheq}
+ここで、$\eta > 0$ は学習率、$\mu \in (0, 1]$ はモーメンタム係数（摩擦係数とも呼ばれる）である。
+
+\section{Kinematic Interpretation\\ \quad \ \ 運動学的解釈}
+
+目的関数 $f(x)$ によって形成される「器（cup）」の中を転がる質量 $m=1$ のボールを考える。
+ボールには以下の2つの力が作用する。
+\begin{enumerate}
+    \item \textbf{勾配力}: $-\nabla f(x)$ （重力のようにポテンシャルを下る力）
+    \item \textbf{摩擦力}: $F_f = -\footnotemark[1]\rho \dot{x}(t)$ （速度に比例し、運動を妨げる力。$\rho > 0$ は減衰係数）
+\end{enumerate}
+\footnotetext[1]{$\rho$ はローと言う}
+\noindent
+よって、$F_{\textbf{合力}} = F_{\textbf{勾配力}} + F_{\textbf{摩擦力}} = - \rho \dot{x}(t) -\nabla f(x)$。\\
+ニュートンの運動方程式（$\mathbf{F=ma}$）より、以下の微分方程式が得られる。
+
+\begin{equation}
+    a =\footnotemark[2]\ddot{x}(t) = -\rho \dot{x}(t) - \nabla f(x(t)) \label{eq:newton_friction}
+\end{equation}
+\footnotetext[2]{$\dot{v} = \frac{d}{dt}v = \frac{d}{dt}\left(\frac{d}{dt}x\right) = \frac{d^2}{dt^2}x = \ddot{x} = -\nabla f(x)$. ここで、$\ddot{x}$は加速度であり、\textbf{エックス・ツー・ドット}と呼ぶ。}
+\subsection{Energy Dissipation Analysis\\ エネルギー散逸の解析}
+
+\begin{reidai}{$\frac{d}{dt} E_{tot}(t)< 0$の証明}{dd}
+  このシステムにおいて、総エネルギー $E_{tot}(t)$ が保存されず、時間とともに減少することを証明する。
+\end{reidai}
+\vspace{0.5em}
+\begin{proof}
+ \ \\
+\noindent
+総エネルギーは運動エネルギーとポテンシャルエネルギーの和で定義される。
+\[
+E_{tot}(t) = \frac{1}{2}\|\dot{x}(t)\|^2 + f(x(t))
+\]
+これを時間 $t$ で微分する。
+\begin{align*}
+    \frac{d}{dt} E_{tot}(t) &= \frac{d}{dt} \left( \frac{1}{2}\dot{x}(t)^T \dot{x}(t) + f(x(t)) \right) \\
+    &= \dfrac{1}{2}((\dfrac{d}{dt}\dot{x}(t))^T \dot{x}(t) + \dot{x}(t)^T \dfrac{d}{dt}\dot{x}(t)) + \nabla f(x(t))^T \dfrac{d}{dt}(x(t)) \\
+    &= \dot{x}(t)^T \ddot{x}(t) + \dot{x}(t)^T \nabla f(x(t))  \\
+    &= \dot{x}(t)^T \left( \ddot{x}(t) + \nabla f(x(t)) \right)
+\end{align*}
+ここで、運動方程式 \eqref{eq:newton_friction} より、$\ddot{x}(t) + \nabla f(x(t)) = -\rho \dot{x}(t)$ なので、これを代入する。
+\begin{align*}
+\frac{d}{dt} E_{tot}(t) &= \dot{x}(t)^T \left( -\rho \dot{x}(t) \right) \\
+&= -\rho \|\dot{x}(t)\|^2 \\
+&= -\rho \|v(t)\|^2 < 0
+\end{align*}
+$\rho > 0$ であるため、速度がゼロでない限りエネルギーは常に減少する。これにより、システムはエネルギーの低い状態（平衡点）へと収束する。
+\end{proof}
+
+\subsection{Phase Space Analysis and Divergence\\ 相空間解析と発散率div}
+運動方程式 \eqref{eq:newton_friction} は、位置 $x$ と速度 $v$ に関する1階連立微分方程式\textbf{ODEs}として記述できます。
+\[
+\begin{cases}
+    \dot{x}(t) = v(t) \\
+    \dot{v}(t) = -\rho v(t) - \nabla f(x(t))
+\end{cases}
+\]
+このベクトル場 $X = (\dot{x}, \dot{v})$ の発散（\textbf{Divergence}）を計算する。
+
+\begin{align*}
+\text{div}(\dot{x}, \dot{v}) &= \frac{\partial}{\partial x}(\dot{x}) + \frac{\partial}{\partial v}(\dot{v}) \\
+&= \frac{\partial}{\partial x}(v) + \frac{\partial}{\partial v}(-\rho v - \nabla f(x)) \\
+&= 0 + (-\rho) \\
+&= -\rho < 0
+\end{align*}
+発散が負であることは、相空間内の体積が時間とともに\textbf{収縮（contracting）}することを意味する。これにより、解軌道は一点（平衡点）に収束する。
+
+% TikZ Diagram to replicate Image 2
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[scale=0.9, >=Stealth]
+        % --- Left Plot: Frictionless (a) ---
+        \begin{scope}[shift={(-4.5,0)}]
+            % Axes
+            \draw[->] (-3,0) -- (3,0) node[right] {$x$};
+            \draw[->] (0,-2.2) -- (0,2.2) node[right] {$v$};
+            
+            % Ellipses (Trajectories)
+            \draw[thick, gray!70] (0,0) ellipse (2.5 and 1.8);
+            \draw[thick, gray!70] (0,0) ellipse (1.8 and 1.2);
+            \draw[thick, gray!70] (0,0) ellipse (1.0 and 0.6);
+            
+            % Arrows indicating direction (Clockwise)
+            % Top half -> right, Bottom half -> left
+            \draw[-{Stealth[length=2mm]}, gray!70] (0.1, 1.8) -- (0.11, 1.8); 
+            \draw[-{Stealth[length=2mm]}, gray!70] (-0.1, -1.8) -- (-0.11, -1.8);
+            \draw[-{Stealth[length=2mm]}, gray!70] (0.1, 1.2) -- (0.11, 1.2); 
+            \draw[-{Stealth[length=2mm]}, gray!70] (-0.1, -1.2) -- (-0.11, -1.2);
+            
+            % Balls on the outer trajectory
+            \fill[black!10, draw=gray] (0, 1.8) circle (0.25); % Top
+            \node at (0, 1.8) {\scriptsize $(\dot{x},\dot{v})$};
+            \fill[black!10, draw=gray] (2.5, 0) circle (0.25); % Right
+            \fill[black!10, draw=gray] (0, -1.8) circle (0.25); % Bottom
+            
+            % Equilibrium point
+            \fill (0,0) circle (2pt);
+            
+            \node at (0, -2.8) {\textbf{a}};
+        \end{scope}
+
+        % --- Right Plot: With Friction (b) ---
+        \begin{scope}[shift={(4.5,0)}]
+            % Axes
+            \draw[->] (-3,0) -- (3,0) node[right] {$x$};
+            \draw[->] (0,-2.2) -- (0,2.2) node[right] {$v$};
+            
+            % Background Energy Levels (Dotted Ellipses)
+            \draw[thick, gray!50] (0,0) ellipse (2.5 and 1.8);
+            \draw[thick, gray!50] (0,0) ellipse (1.8 and 1.2);
+            \draw[thick, gray!50] (0,0) ellipse (1.0 and 0.6);
+            
+            % Spiral Trajectory (Inward)
+            % Parametric equation for spiral: x = A*e^(-kt)*cos(t), v = B*e^(-kt)*sin(t)
+            % We simulate clockwise spiral starting from top-ish
+            \draw[thick, black, dash pattern=on 3pt off 2pt on 1pt off 2pt] 
+                plot[domain=1.5:15, samples=200, smooth] 
+                ({2.8*exp(-0.15*\x)*cos(-\x r + 90)}, {2.0*exp(-0.15*\x)*sin(-\x r + 90)});
+
+            % Arrows on spiral
+            \draw[-{Stealth[length=2mm]}] ({2.8*exp(-0.15*2)*cos(-2 r + 90)}, {2.0*exp(-0.15*2)*sin(-2 r + 90)}) -- 
+                                         ({2.8*exp(-0.15*2.1)*cos(-2.1 r + 90)}, {2.0*exp(-0.15*2.1)*sin(-2.1 r + 90)});
+
+            % Balls along the spiral
+            % 1. Start area
+            \fill[black!10, draw=gray] ({2.8*exp(-0.15*1.5)*cos(-1.5 r + 90)}, {2.0*exp(-0.15*1.5)*sin(-1.5 r + 90)}) circle (0.25);
+            \node at ({2.8*exp(-0.15*1.5)*cos(-1.5 r + 90)}, {2.0*exp(-0.15*1.5)*sin(-1.5 r + 90)+0.4}) {\scriptsize $(\dot{x},\dot{v})$};
+            
+            % 2. Crossing x-axis
+            \fill[black!10, draw=gray] ({2.8*exp(-0.15*3.3)*cos(-3.3 r + 90)}, {2.0*exp(-0.15*3.3)*sin(-3.3 r + 90)}) circle (0.22);
+            
+            % 3. Bottom area
+            \fill[black!10, draw=gray] ({2.8*exp(-0.15*4.7)*cos(-4.7 r + 90)}, {2.0*exp(-0.15*4.7)*sin(-4.7 r + 90)}) circle (0.18);
+             
+            % 4. Inner
+            \fill[black!10, draw=gray] ({2.8*exp(-0.15*8)*cos(-8 r + 90)}, {2.0*exp(-0.15*8)*sin(-8 r + 90)}) circle (0.15);
+
+            % Equilibrium point
+            \fill (0,0) circle (2pt);
+            
+            \node at (0, -2.8) {\textbf{b}};
+        \end{scope}
+    \end{tikzpicture}
+    \caption{Solution in phase space.\\ \textbf{a.} Without friction ($\text{div}=0$), trajectory orbits forever. \\ \textbf{b.} With friction ($\text{div}<0$), trajectory spirals into the equilibrium point.}
+\end{figure}
+
+\section{Discretization and Algorithm Derivation\\ \quad \ \ 離散化とアルゴリズムの導出}
+
+コンピュータ上で計算を実行するために、連続時間の\textbf{ODEs}システムを有限差分法を用いて離散化する。\\
+
+\noindent
+まず、等間隔の時間分割 $0 = t_0 < t_1 < \dots < t_n < \infty$ を考える。時間刻み幅を $\Delta t = t_{n+1} - t_n$ \textbf{（定数）}とする。
+システムの$n$ ステップ目の状態を $(x^n, v^n) = (x(t_n), v(t_n))$ と表記する。
+
+微分 $\dot{x}(t), \dot{v}(t)$ を前進差分（Forward Difference）で近似する
+\[
+\dot{x}(t) \approx \frac{x^{n+1} - x^n}{\Delta t}, \quad \dot{v}(t) \approx \frac{v^{n+1} - v^n}{\Delta t}
+\]
+これらを元の\textbf{ODEs}に代入すると
+\begin{align*}
+    \frac{x^{n+1} - x^n}{\Delta t} &= v^n \\
+    \frac{v^{n+1} - v^n}{\Delta t} &= -\rho v^n - \nabla f(x^n)
+\end{align*}
+となり、これを整理すると、以下の差分方程式が得られる。
+\begin{empheq}[left=\empheqlbrace]{align}
+    x^{n+1} - x^n &= v^n \Delta t \label{eq:diff_x} \\
+    v^{n+1} - v^n &= -\rho v^n \Delta t - \nabla f(x^n) \Delta t \label{eq:diff_v}
+\end{empheq}
+
+\noindent
+次に、物理のパラメータをアルゴリズムのハイパーパラメータに変換する。
+\begin{itemize}
+    \item 時間刻みを $\epsilon = \Delta t$ と置く。
+    \item 摩擦項をまとめるため、$\mu = 1 - \rho \epsilon$ と定義する。ここで $\rho > 0, \epsilon > 0$ より $\mu < 1$ である。
+\end{itemize}
+式 \eqref{eq:diff_v} の右辺を変形します：
+\[
+v^{n+1} = v^n - \rho v^n \Delta t - \nabla f(x^n) \Delta t = (1 - \rho \Delta t)v^n - \Delta t \nabla f(x^n)
+\]
+パラメータ $\epsilon, \mu$ を代入すると、中間的なシステムが得られます。
+\begin{align}
+    x^{n+1} &= x^n + \epsilon v^n \label{eq:pos_inter} \\
+    v^{n+1} &= \mu v^n - \epsilon \nabla f(x^n) \label{eq:vel_inter}
+\end{align}
+
+\noindent
+最後、物理的な速度 $v$ とアルゴリズム上の更新量を整合させるため、速度変数の再スケーリング（Rescaling）を行う。
+新しい速度変数 $\tilde{v}$ を以下のように定義する。
+\[
+\tilde{v}^n = \epsilon v^n \quad \left(\iff v^n = \frac{\tilde{v}^n}{\epsilon}\right)
+\]
+これを式 \eqref{eq:pos_inter} と \eqref{eq:vel_inter} に代入して計算を進める
+
+\textbf{1. 位置の更新式:}
+\[
+x^{n+1} = x^n + \epsilon \left( \frac{\tilde{v}^n}{\epsilon} \right) = x^n + \tilde{v}^n
+\]
+
+\textbf{2. 速度の更新式:}
+\[
+\frac{\tilde{v}^{n+1}}{\epsilon} = \mu \left( \frac{\tilde{v}^n}{\epsilon} \right) - \epsilon \nabla f(x^n)
+\]
+この両辺に $\epsilon$ を掛けると、
+\[
+\tilde{v}^{n+1} = \mu \tilde{v}^n - \epsilon^2 \nabla f(x^n)
+\]
+ここで、学習率を $\eta = \epsilon^2$ とすると、最終的なアルゴリズムの更新式が得られる。
+\begin{empheq}{align}
+    x^{n+1} &= x^n + \tilde{v}^n \label{eq:finalx}\\
+    \tilde{v}^{n+1} &= \mu \tilde{v}^n - \eta \nabla f(x^n)\label{eq:finalv}
+\end{empheq}
+これはPolyakの古典的なモーメンタム法（式 [\ref{eq:pos_update_polyak}], [\ref{eq:vel_update_polyak}]）と形式的に一致する。
+
+\section{Analysis of Example 4.4.1\\ \quad \ \ 例4.4.1の解析}
+
+2次関数に対するモーメンタム法の応用を、線形代数で解析する。
+
+\begin{reidai}{Quadratic Function Analysis}{ex441}
+    実変数 $x$ の2次関数 $f(x) = \frac{1}{2}(ax - b)^2$ （ただし $a \ne 0$）を考える。
+    このとき、モーメンタム法の更新式 \eqref{eq:finalx}-\eqref{eq:finalv}は線形式 $s_{n+1} = M s_n + \beta$ として記述できる。
+    ここで、$s_n = \begin{pmatrix} x^n \\ v^n \end{pmatrix}, \quad M = \begin{pmatrix} 1 & \epsilon \\ -\epsilon a^2 & \mu \end{pmatrix}, \quad \beta = \begin{pmatrix} 0 \\ \epsilon ab \end{pmatrix}$。
+    \begin{enumerate}
+        \item 状態 $s_n$ の一般項を初期状態 $s_0$ を用いて導出せよ。
+        \item 行列 $M$ の固有値を解析し、システムが平衡点へ収束することを証明せよ。
+    \end{enumerate}
+\end{reidai}
+\vspace{0.5em}
+\begin{proof}
+ \ \\
+\noindent
+まず、勾配 $f'(x) = a(ax - b) = a^2 x - ab$ を更新式に代入し、行列形式に整理する。
+\begin{align*}
+    x^{n+1} &= x^n + \epsilon v^n \\
+    v^{n+1} &= \mu v^n - \epsilon (a^2 x^n - ab) = -\epsilon a^2 x^n + \mu v^n + \epsilon ab
+\end{align*}
+状態ベクトルを $s_n = \begin{pmatrix} x^n \\ v^n \end{pmatrix}$ と置くと、以下の線形漸化式が得られる。
+\begin{equation}
+    s_{n+1} = M s_n + \beta, \quad \text{where,\  } 
+    M = \begin{pmatrix} 1 & \epsilon \\ -\epsilon a^2 & \mu \end{pmatrix}, \quad 
+    \beta = \begin{pmatrix} 0 \\ \epsilon ab \end{pmatrix}
+    \label{eq:matrix_system}
+\end{equation}
+
+
+次、漸化式 \eqref{eq:matrix_system} を繰り返し計算し、一般項 $s_n$ を導出する。
+
+\begin{itemize}
+    \item $n=1$:
+    \[ s_1 = M s_0 + \beta \]
+    \item $n=2$:
+    \[ s_2 = M s_1 + \beta = M(M s_0 + \beta) + \beta = M^2 s_0 + M\beta + \beta \]
+    \item $n=3$:
+    \[ s_3 = M s_2 + \beta = M(M^2 s_0 + M\beta + \beta) + \beta = M^3 s_0 + (M^2 + M + I)\beta \]
+\end{itemize}
+
+よって、これを $n$ 回繰り返すと、以下の形式となる。
+\begin{equation}
+    s_n = M^n s_0 + \left( \sum_{k=0}^{n-1} M^k \right) \beta
+\end{equation}
+ここで、括弧内の項は行列の等比級数である。$S_n = \displaystyle\sum_{k=0}^{n-1} M^k$ と置き、等式の両辺に$I - M$を掛けると、
+\[
+(\mathbb{I} - M) S_n = (\mathbb{I} - M)(\mathbb{I} + M + \dots + M^{n-1}) = \mathbb{I} - M^n
+\]
+ここで、$\mathbb{I}$は単位行列(\textbf{Unitary Matrix"})行列 $\mathbb{I}-M$ が正則（逆行列が存在）であると仮定すると、
+\[ S_n = (\mathbb{I} - M^n)(\mathbb{I} - M)^{-1} \]
+したがって、状態 $s_n$ の一般項は以下のように表される。
+\begin{empheq}{equation}
+    s_n = M^n s_0 + (\footnotemark[3]\mathbb{I}_2 - M^n)(\mathbb{I}_2 - M)^{-1} \beta \label{eq:closed_form}
+\end{empheq}
+\footnotetext[3]{$\mathbb{I}_2$ とは$2\times 2$の単位行列である。}
+あと、収束先を求めるために必要な $(\mathbb{I}_2 - M)^{-1}$ を計算する。
+\[
+\mathbb{I}_2 - M = \begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix} - \begin{pmatrix} 1 & \epsilon \\ -\epsilon a^2 & \mu \end{pmatrix} 
+= \begin{pmatrix} 0 & -\epsilon \\ \epsilon a^2 & 1-\mu \end{pmatrix}
+\]
+\textbf{2x2}行列の逆行列公式より、行列式は $\det = 0 - (-\epsilon)(\epsilon a^2) = \epsilon^2 a^2$ なので、
+\begin{equation}
+    (\mathbb{I}_2 - M)^{-1} = \frac{1}{\epsilon^2 a^2} \begin{pmatrix} 1-\mu & \epsilon \\ -\epsilon a^2 & 0 \end{pmatrix} \label{eq:inverse_m}
+\end{equation}
+となる。\\
+
+\noindent
+このシステムが収束させるためには、$\displaystyle\lim_{n \to \infty} M^n = 0$ である必要がある。\ie $M$ のすべての固有値の絶対値が1未満であることと同値である。\\
+
+\noindent
+次に、行列 $M$ の特性方程式（Characteristic Equation）を解く
+\[
+\det(M - \lambda I) = \det \begin{pmatrix} 1-\lambda & \epsilon \\ -\epsilon a^2 & \mu-\lambda \end{pmatrix} = 0
+\]
+\[
+(1-\lambda)(\mu-\lambda) + \epsilon^2 a^2 = 0 \implies \lambda^2 - (1+\mu)\lambda + (\mu + \epsilon^2 a^2) = 0
+\]
+この2次方程式の解 $\lambda_1, \lambda_2$ について分析する（\textbf{7ページの図2参照}）
+\begin{enumerate}
+    \item $\epsilon = 0$ のとき：解は $\lambda_1(0)=\mu$ と $\lambda_2(0)=1$ である。ここで $0 < \mu < 1$ です。
+    \item $\epsilon > 0$ （$\mathtt{for\ small\ enough}$）のとき：定数項が増加し、放物線が上方にシフトする。$\epsilon$ が十分小さければ、連続性により解は実数のまま区間 $(\mu, 1)$ の内部にある。
+\end{enumerate}
+よって、$0 < \lambda_1(\epsilon) < \lambda_2(\epsilon) < 1$ が成立するため、
+\[ \lim_{n \to \infty} M^n = \mathbf{O_{2 \times 2}} \quad (\text{ゼロ行列}) \]
+が証明された。
+
+極限 $n \to \infty$ を式 \eqref{eq:closed_form} に適用する。
+第一項 $M^n s_0$ は 0 に収束し、第二項の $M^n$ も 0 になります。
+\begin{align*}
+    s^* = \lim_{n \to \infty} s_n &= (I_2 - O)(I_2 - M)^{-1} \beta \\
+    &= (I_2 - M)^{-1} \beta
+\end{align*}
+式 \eqref{eq:inverse_m} の結果と $\beta = (0, \epsilon ab)^T$ を代入して計算する。
+\[
+s^* = \frac{1}{\epsilon^2 a^2} \begin{pmatrix} 1-\mu & \epsilon \\ -\epsilon a^2 & 0 \end{pmatrix} \begin{pmatrix} 0 \\ \epsilon ab \end{pmatrix}
+\]
+行列の積を計算すると：
+\begin{itemize}
+    \item $x$成分: $\frac{1}{\epsilon^2 a^2} \left( (1-\mu)\cdot 0 + \epsilon \cdot \epsilon ab \right) = \frac{\epsilon^2 ab}{\epsilon^2 a^2} = \frac{b}{a}$
+    \item $v$成分: $\frac{1}{\epsilon^2 a^2} \left( (-\epsilon a^2)\cdot 0 + 0 \cdot \epsilon ab \right) = 0$
+\end{itemize}
+したがって、
+\[
+s^* = \begin{pmatrix} b/a \\ 0 \end{pmatrix}
+\]
+これは $f(x)$ の最小値を与える点 $x^* = b/a$ （勾配 $a(ax - b)=0$ の解）と完全に一致する。
+以上より、モーメンタム法は初期値に関わらず正しい最適解へ収束することが示された。
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[scale=1.3]
+        % Axis
+        \draw[->, >=Stealth] (-1,0) -- (6,0);
+        
+        % Parameters for parabola
+        % y = k(x-r1)(x-r2)
+        % Roots at 1 and 4 for visual spacing
+        
+        % 1. Lower Parabola (epsilon = 0)
+        % Vertex at x=2.5. Let's say y_min = -1.5
+        \draw[thick, gray!70] plot[domain=0:5, samples=100] (\x, {0.6*(\x-1)*(\x-4)});
+        
+        % 2. Upper Parabola (epsilon > 0)
+        % Shift up by some amount, say 0.6
+        \draw[thick, gray!70] plot[domain=0:5, samples=100] (\x, {0.6*(\x-1)*(\x-4) + 0.6});
+        
+        % --- Dots and Labels ---
+        
+        % Lambda 1 (0) = mu
+        \fill (1,0) circle (1.5pt) node[below left] {$\lambda_1(0)\!=\!\mu$};
+        
+        % Lambda 2 (0) = 1
+        \fill (4,0) circle (1.5pt) node[below right] {$\lambda_2(0)\!=\!1$};
+        
+        % Lambda 1 (epsilon)
+        % Solve 0.6(x-1)(x-4) + 0.6 = 0 => (x-1)(x-4) = -1 => x^2 - 5x + 5 = 0
+        % x = (5 +/- sqrt(25-20))/2 = (5 +/- 2.23)/2 = 1.38, 3.61
+        \fill (1.38,0) circle (1.5pt);
+        \node[above] at (1.38, 0.1) {$\lambda_1(\epsilon)$};
+        
+        % Lambda 2 (epsilon)
+        \fill (3.61,0) circle (1.5pt);
+        \node[above] at (3.61, 0.1) {$\lambda_2(\epsilon)$};
+        
+        % --- Shift Arrow ---
+        % Draw arrow at the vertex x=2.5
+        % Lower y: 0.6*(1.5)*(-1.5) = -1.35
+        % Upper y: -1.35 + 0.6 = -0.75
+        \draw[<->, >=Stealth] (2.5, -1.35) -- (2.5, -0.75);
+        \node[right] at (2.5, -1.05) {$\epsilon^2 a^2$};
+        
+    \end{tikzpicture}
+    \caption{For small upward shifts the roots $\lambda_i$ remain real and situated between $\mu$ and $1$.}
+\end{figure}
+\end{proof}
+\newpage
+\hosoku\\
+
+\noindent
+\textbf{モーメンタム法の命名について}:
+通常、物理学における「運動量（Momentum）」は物体を前へ押し進めるものであるが、この手法では実際には摩擦力（$\mu < 1$）を用いて粒子を\textbf{減衰（Damp）}させている。これは平衡点を行き過ぎる（\textbf{Overshoot}）のを防ぐためである。
+もし局所（\textbf{local}）解から脱出するために「勢い」をつけたい場合は、$\mu > 1$ （負の摩擦＝加速）を設定する必要がある。
+
+\end{document}
