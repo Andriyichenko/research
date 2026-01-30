@@ -290,13 +290,14 @@ x^{n+1} = x^n + \epsilon \left( \frac{\tilde{v}^n}{\epsilon} \right) = x^n + \ti
 \[
 (\mathbb{I} - M) S_n = (\mathbb{I} - M)(\mathbb{I} + M + \dots + M^{n-1}) = \mathbb{I} - M^n
 \]
-ここで、$\mathbb{I}$は単位行列(\textbf{Unitary Matrix"})行列 $\mathbb{I}-M$ が正則（逆行列が存在）であると仮定すると、
-\[ S_n = (\mathbb{I} - M^n)(\mathbb{I} - M)^{-1} \]
+ここで、$\mathbb{I}$は単位行列(\textbf{Unit Matrix})行列 $\mathbb{I}-M$ が正則（逆行列が存在）であると仮定すると、
+\[ \footnotemark[3]S_n = (\mathbb{I} - M^n)(\mathbb{I} - M)^{-1} \]
 したがって、状態 $s_n$ の一般項は以下のように表される。
+\footnotetext[3]{具体的な証明はAppendixの\textbf{\textit{EX.}}\ref{tha:geom_matrix}を参照してください}
 \begin{empheq}{equation}
-    s_n = M^n s_0 + (\footnotemark[3]\mathbb{I}_2 - M^n)(\mathbb{I}_2 - M)^{-1} \beta \label{eq:closed_form}
+    s_n = M^n s_0 + (\footnotemark[4]\mathbb{I}_2 - M^n)(\mathbb{I}_2 - M)^{-1} \beta \label{eq:closed_form}
 \end{empheq}
-\footnotetext[3]{$\mathbb{I}_2$ とは$2\times 2$の単位行列である。}
+\footnotetext[4]{$\mathbb{I}_2$ とは$2\times 2$の単位行列である。}
 あと、収束先を求めるために必要な $(\mathbb{I}_2 - M)^{-1}$ を計算する。
 \[
 \mathbb{I}_2 - M = \begin{pmatrix} 1 & 0 \\ 0 & 1 \end{pmatrix} - \begin{pmatrix} 1 & \epsilon \\ -\epsilon a^2 & \mu \end{pmatrix} 
@@ -312,14 +313,14 @@ x^{n+1} = x^n + \epsilon \left( \frac{\tilde{v}^n}{\epsilon} \right) = x^n + \ti
 このシステムが収束させるためには、$\displaystyle\lim_{n \to \infty} M^n = 0$ である必要がある。\ie $M$ のすべての固有値の絶対値が1未満であることと同値である。\\
 
 \noindent
-次に、行列 $M$ の特性方程式（Characteristic Equation）を解く
+次に、行列 $M$ の特性方程式（\textbf{Characteristic Equation}）を解く
 \[
-\det(M - \lambda I) = \det \begin{pmatrix} 1-\lambda & \epsilon \\ -\epsilon a^2 & \mu-\lambda \end{pmatrix} = 0
+\det(M - \lambda \mathbb{I}) = \det \begin{pmatrix} 1-\lambda & \epsilon \\ -\epsilon a^2 & \mu-\lambda \end{pmatrix} = 0
 \]
 \[
 (1-\lambda)(\mu-\lambda) + \epsilon^2 a^2 = 0 \implies \lambda^2 - (1+\mu)\lambda + (\mu + \epsilon^2 a^2) = 0
 \]
-この2次方程式の解 $\lambda_1, \lambda_2$ について分析する（\textbf{7ページの図2参照}）
+この2次方程式の解 $\lambda_1, \lambda_2$ について分析する（\textbf{7ページの図\ref{fig:2}参照}）
 \begin{enumerate}
     \item $\epsilon = 0$ のとき：解は $\lambda_1(0)=\mu$ と $\lambda_2(0)=1$ である。ここで $0 < \mu < 1$ です。
     \item $\epsilon > 0$ （$\mathtt{for\ small\ enough}$）のとき：定数項が増加し、放物線が上方にシフトする。$\epsilon$ が十分小さければ、連続性により解は実数のまま区間 $(\mu, 1)$ の内部にある。
@@ -331,8 +332,8 @@ x^{n+1} = x^n + \epsilon \left( \frac{\tilde{v}^n}{\epsilon} \right) = x^n + \ti
 極限 $n \to \infty$ を式 \eqref{eq:closed_form} に適用する。
 第一項 $M^n s_0$ は 0 に収束し、第二項の $M^n$ も 0 になります。
 \begin{align*}
-    s^* = \lim_{n \to \infty} s_n &= (I_2 - O)(I_2 - M)^{-1} \beta \\
-    &= (I_2 - M)^{-1} \beta
+    s^* = \lim_{n \to \infty} s_n &= (\mathbb{I}_2 - O)(\mathbb{I}_2 - M)^{-1} \beta \\
+    &= (\mathbb{I}_2 - M)^{-1} \beta
 \end{align*}
 式 \eqref{eq:inverse_m} の結果と $\beta = (0, \epsilon ab)^T$ を代入して計算する。
 \[
@@ -395,6 +396,7 @@ s^* = \begin{pmatrix} b/a \\ 0 \end{pmatrix}
         
     \end{tikzpicture}
     \caption{For small upward shifts the roots $\lambda_i$ remain real and situated between $\mu$ and $1$.}
+    \label{fig:2}
 \end{figure}
 \end{proof}
 \newpage
@@ -405,4 +407,68 @@ s^* = \begin{pmatrix} b/a \\ 0 \end{pmatrix}
 通常、物理学における「運動量（Momentum）」は物体を前へ押し進めるものであるが、この手法では実際には摩擦力（$\mu < 1$）を用いて粒子を\textbf{減衰（Damp）}させている。これは平衡点を行き過ぎる（\textbf{Overshoot}）のを防ぐためである。
 もし局所（\textbf{local}）解から脱出するために「勢い」をつけたい場合は、$\mu > 1$ （負の摩擦＝加速）を設定する必要がある。
 
+\newpage
+\appendix
+\section{補足証明：行列の等比級数の和と逆行列}
+
+\begin{reidai}{行列の等比級数の和}{geom_matrix}
+$S_n = \displaystyle\sum_{k=0}^{n-1} M^k$ と置き、等式の両辺に$I - M$を掛けると、
+\[
+(\mathbb{I} - M) S_n = (\mathbb{I} - M)(\mathbb{I} + M + \dots + M^{n-1}) = \mathbb{I} - M^n
+\]
+ここで、$\mathbb{I}$は単位行列(\textbf{Unit Matrix}),\ $M = \begin{pmatrix} 1 & \epsilon \\ -\epsilon a^2 & \mu \end{pmatrix}$\\
+行列 $\mathbb{I}-M$ が正則（逆行列が存在）であると仮定すると、
+\[ S_n = (\mathbb{I} - M^n)(\mathbb{I} - M)^{-1} \]
+となることを示せ
+\end{reidai}
+\vspace{0.5em}
+\begin{proof}
+\paragraph{行列の多項式の可換性}\ \\
+一般に行列の積は非可換（$AB \neq BA$）であるが、行列 $M$ とその多項式 $P(M)$ は可換である。
+$S_n = I + M + \dots + M^{n-1}$ は $M$ の多項式であるため、$M$ および $(I-M)$ と可換になる。
+まず、$(\mathbb{I} - M)$ を $S_n$ の\textbf{右側}から掛けた場合を展開する。
+\begin{align*}
+    S_n (\mathbb{I} - M) &= (\mathbb{I} + M + M^2 + \dots + M^{n-1})(\mathbb{I} - M) \\
+    &= (\mathbb{I} + M + \dots + M^{n-1}) - (M + M^2 + \dots + M^n) \\
+    &= \mathbb{I} + (M - M) + (M^2 - M^2) + \dots + (M^{n-1} - M^{n-1}) - M^n \\
+    &= \mathbb{I} - M^n 
+\end{align*}
+同様に、左側から掛けても $(\mathbb{I} - M)S_n = \mathbb{I} - M^n$ が成立する。
+
+\paragraph{$M$と$(\mathbb{I} - M)$が可換となる証明}\ \\
+行列 $M$ と $(\mathbb{I} - M)$ が可換であることを示す。
+\begin{align*}
+    M(\mathbb{I} - M) &= M - M^2 \\
+    \footnotemark[5](\mathbb{I} - M)M &= M - M^2
+\end{align*}
+\footnotetext[5]{$\mathbb{I} M = \begin{pmatrix} 1 & 0\\ 0 & 1 \end{pmatrix} \cdot \begin{pmatrix} 1 & \epsilon \\ -\epsilon a^2 & \mu \end{pmatrix} = \begin{pmatrix} 1 & \epsilon \\ -\epsilon a^2 & \mu \end{pmatrix} = \begin{pmatrix} 1 & \epsilon \\ -\epsilon a^2 & \mu \end{pmatrix}\cdot \begin{pmatrix} 1 & 0\\ 0 & 1 \end{pmatrix} = M \mathbb{I} = M$}
+したがって、$M(\mathbb{I} - M) = (\mathbb{I} - M)M$ が成立する。
+\paragraph{$M$と$(\mathbb{I} - M)^{-1}$が可換となる証明}\ \\
+行列 $M$ と $(\mathbb{I} - M)^{-1}$ が可換であることを示す。
+\begin{align*}
+    M(\mathbb{I} - M)^{-1} &= (\mathbb{I} - M)^{-1}M
+\end{align*}
+両辺に $(\mathbb{I} - M)$ を掛けると、
+\begin{align*}
+    M &= (\mathbb{I} - M)^{-1}M(\mathbb{I} - M) \\
+    &= (\mathbb{I} - M)^{-1}(M - M^2) \\
+    &= (\mathbb{I} - M)^{-1}(\mathbb{I} - M)M \\
+    &= M
+\end{align*}
+したがって、$M(\mathbb{I} - M)^{-1} = (\mathbb{I} - M)^{-1}M$ が成立する。
+\paragraph{$(\mathbb{I} - M^n)$と$(\mathbb{I} - M)^{-1}$が可換となる証明}\ \\
+行列 $(\mathbb{I} - M^n)$ と $(\mathbb{I} - M)^{-1}$ が可換であることを示す。
+\begin{align*}
+    (\mathbb{I} - M^n)(\mathbb{I} - M)^{-1} &= \mathbb{I}(\mathbb{I}-M)^{-1} - M^n(\mathbb{I} - M)^{-1} \\
+    &= (\mathbb{I} - M)^{-1}\mathbb{I} - (\mathbb{I} - M)^{-1}M^n\\
+    &= (\mathbb{I} - M)^{-1}(\mathbb{I} - M^n)
+\end{align*}
+したがって、$(\mathbb{I} - M^n)(\mathbb{I} - M)^{-1} = (\mathbb{I} - M)^{-1}(\mathbb{I} - M^n)$ が成立する。 \\
+
+\noindent
+以上より、行列 $M$、$(\mathbb{I} - M)$、$(\mathbb{I} - M)^{-1}$、$(\mathbb{I} - M^n)$ はすべて互いに可換であることが示された。
+したがって、等式の両辺に$(\mathbb{I} - M)^{-1}$を掛ける操作は、左側からでも右側からでも同じ結果をもたらす。
+\[ S_n = (\mathbb{I} - M)^{-1}(\mathbb{I} - M^n) = (\mathbb{I} - M^n)(\mathbb{I} - M)^{-1} \] 
+となる。
+\end{proof}
 \end{document}
