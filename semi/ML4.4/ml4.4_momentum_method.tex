@@ -20,7 +20,7 @@
 
 \begin{itemize}
     \item \textbf{速度（Velocity）}: 過去の勾配の値を積んで、慣性を持ってエネルギー障壁（Energy Barrier）を乗り越える助けとなる。
-    \item \textbf{摩擦（Friction）}: システムのエネルギーを徐々に散逸させ、ボールが最終的に平衡点（最小値）に静止するようにする。
+    \item \textbf{摩擦（Friction）}: システムのエネルギーを徐々に散逸させ、ボールが最終的に平衡点（最小値）に止まるようにする。
 \end{itemize}
 
 \textbf{Polyak (1964)} による古典的なモーメンタム法の更新式は以下の通りである。
@@ -77,7 +77,7 @@ $\rho > 0$ であるため、速度がゼロでない限りエネルギーは常
 \end{proof}
 
 \subsection{Phase Space Analysis and Divergence\\ 相空間解析と発散率div}
-運動方程式 \eqref{eq:newton_friction} は、位置 $x$ と速度 $v$ に関する1階連立微分方程式\textbf{ODEs}として記述できます。
+運動方程式 \eqref{eq:newton_friction} は、位置 $x$ と速度 $v$ に関する1階連立微分方程式\textbf{ODEs}として記述できる。
 \[
 \begin{cases}
     \dot{x}(t) = v(t) \\
@@ -202,11 +202,11 @@ $\rho > 0$ であるため、速度がゼロでない限りエネルギーは常
     \item 時間刻みを $\epsilon = \Delta t$ と置く。
     \item 摩擦項をまとめるため、$\mu = 1 - \rho \epsilon$ と定義する。ここで $\rho > 0, \epsilon > 0$ より $\mu < 1$ である。
 \end{itemize}
-式 \eqref{eq:diff_v} の右辺を変形します：
+式 \eqref{eq:diff_v} の右辺を変形する：
 \[
 v^{n+1} = v^n - \rho v^n \Delta t - \nabla f(x^n) \Delta t = (1 - \rho \Delta t)v^n - \Delta t \nabla f(x^n)
 \]
-パラメータ $\epsilon, \mu$ を代入すると、中間的なシステムが得られます。
+パラメータ $\epsilon, \mu$ を代入すると、中間的なシステムが得られる。
 \begin{align}
     x^{n+1} &= x^n + \epsilon v^n \label{eq:pos_inter} \\
     v^{n+1} &= \mu v^n - \epsilon \nabla f(x^n) \label{eq:vel_inter}
@@ -322,7 +322,7 @@ x^{n+1} = x^n + \epsilon \left( \frac{\tilde{v}^n}{\epsilon} \right) = x^n + \ti
 \]
 この2次方程式の解 $\lambda_1, \lambda_2$ について分析する（\textbf{7ページの図\ref{fig:2}参照}）
 \begin{enumerate}
-    \item $\epsilon = 0$ のとき：解は $\lambda_1(0)=\mu$ と $\lambda_2(0)=1$ である。ここで $0 < \mu < 1$ です。
+    \item $\epsilon = 0$ のとき：解は $\lambda_1(0)=\mu$ と $\lambda_2(0)=1$ である。ここで $0 < \mu < 1$ である。
     \item $\epsilon > 0$ （$\mathtt{for\ small\ enough}$）のとき：定数項が増加し、放物線が上方にシフトする。$\epsilon$ が十分小さければ、連続性により解は実数のまま区間 $(\mu, 1)$ の内部にある。
 \end{enumerate}
 よって、$0 < \lambda_1(\epsilon) < \lambda_2(\epsilon) < 1$ が成立するため、
@@ -331,7 +331,7 @@ x^{n+1} = x^n + \epsilon \left( \frac{\tilde{v}^n}{\epsilon} \right) = x^n + \ti
 
 \noindent
 極限 $n \to \infty$ を式 \eqref{eq:closed_form} に適用する。
-第一項 $M^n s_0$ は 0 に収束し、第二項の $M^n$ も 0 になります。
+第一項 $M^n s_0$ は 0 に収束し、第二項の $M^n$ も 0 になる。
 \begin{align*}
     s^* = \lim_{n \to \infty} s_n &= (\mathbb{I}_2 - O)(\mathbb{I}_2 - M)^{-1} \beta \\
     &= (\mathbb{I}_2 - M)^{-1} \beta
@@ -345,7 +345,7 @@ s^* = \frac{1}{\epsilon^2 a^2} \begin{pmatrix} 1-\mu & \epsilon \\ -\epsilon a^2
     \item $x$成分: $\frac{1}{\epsilon^2 a^2} \left( (1-\mu)\cdot 0 + \epsilon \cdot \epsilon ab \right) = \frac{\epsilon^2 ab}{\epsilon^2 a^2} = \frac{b}{a}$
     \item $v$成分: $\frac{1}{\epsilon^2 a^2} \left( (-\epsilon a^2)\cdot 0 + 0 \cdot \epsilon ab \right) = 0$
 \end{itemize}
-したがって、
+となる。よって、
 \[
 s^* = \begin{pmatrix} b/a \\ 0 \end{pmatrix}
 \]
