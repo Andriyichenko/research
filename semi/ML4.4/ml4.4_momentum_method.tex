@@ -220,12 +220,12 @@ v^{n+1} = v^n - \rho v^n \Delta t - \nabla f(x^n) \Delta t = (1 - \rho \Delta t)
 \]
 これを式 \eqref{eq:pos_inter} と \eqref{eq:vel_inter} に代入して計算を進める
 
-\textbf{1. 位置の更新式:}
+\textbf{位置の更新式:}
 \[
 x^{n+1} = x^n + \epsilon \left( \frac{\tilde{v}^n}{\epsilon} \right) = x^n + \tilde{v}^n
 \]
 
-\textbf{2. 速度の更新式:}
+\textbf{速度の更新式:}
 \[
 \frac{\tilde{v}^{n+1}}{\epsilon} = \mu \left( \frac{\tilde{v}^n}{\epsilon} \right) - \epsilon \nabla f(x^n)
 \]
@@ -293,7 +293,7 @@ x^{n+1} = x^n + \epsilon \left( \frac{\tilde{v}^n}{\epsilon} \right) = x^n + \ti
 ここで、$\mathbb{I}$は単位行列(\textbf{Unit Matrix})行列 $\mathbb{I}-M$ が正則（逆行列が存在）であると仮定すると、
 \[ \footnotemark[3]S_n = (\mathbb{I} - M^n)(\mathbb{I} - M)^{-1} \]
 したがって、状態 $s_n$ の一般項は以下のように表される。
-\footnotetext[3]{具体的な証明はAppendixの\textbf{\textit{EX.}}\ref{tha:geom_matrix}を参照してください}
+\footnotetext[3]{具体的な証明は\textbf{\ref{app:inverse}}を参照してください}
 \begin{empheq}{equation}
     s_n = M^n s_0 + (\footnotemark[4]\mathbb{I}_2 - M^n)(\mathbb{I}_2 - M)^{-1} \beta \label{eq:closed_form}
 \end{empheq}
@@ -408,9 +408,289 @@ s^* = \begin{pmatrix} b/a \\ 0 \end{pmatrix}
 通常、物理学における「運動量（Momentum）」は物体を前へ押し進めるものであるが、この手法では実際には摩擦力（$\mu < 1$）を用いて粒子を\textbf{減衰（Damp）}させている。これは平衡点を行き過ぎる（\textbf{Overshoot}）のを防ぐためである。
 もし局所（\textbf{local}）解から脱出するために「勢い」をつけたい場合は、$\mu > 1$ （負の摩擦＝加速）を設定する必要がある。
 
+\section{Convergence Conditions\\ \quad \ \ 収束条件}
+
+モーメンタム法によって生成される数列 $(x^n)_n$ および $(v^n)_n$ の収束性を議論するために、まずこれらの数列の閉じた形式（Closed-form expression）、すなわち一般項を導出する。
+
+\subsection{Exact Formulas for Sequences\\ 数列の厳密な公式}
+
+位置 $x^n$ と速度 $v^n$ の漸化式を繰り返し展開（Iterating）することで、一般項を求める。
+
+\paragraph{位置 $x^n$ の導出}
+式 \eqref{eq:finalx} $x^n = x^{n-1} + v^n$ を繰り返し適用する。
+\begin{align*}
+    x^n &= x^{n-1} + v^n \\
+    x^{n-1} &= x^{n-2} + v^{n-1} \\
+    &\vdots \\
+    x^1 &= x^0 + v^1
+\end{align*}
+これらを辺々加えると、中間項がなくされ、以下の式が得られる。
+\begin{empheq}{equation}
+    x^n = x^0 + \sum_{k=1}^{n} v^k \label{eq:xn_closed}
+\end{empheq}
+
+\paragraph{速度 $v^n$ の導出}
+簡単のため、$b_n = \nabla f(x^n)$ と置く。式 \eqref{eq:finalv} $v^n = \mu v^{n-1} - \eta b_{n-1}$ を展開する。
+\begin{align*}
+    v^n &= \mu v^{n-1} - \eta b_{n-1} \\
+    &= \mu (\mu v^{n-2} - \eta b_{n-2}) - \eta b_{n-1} \quad \cdots (\text{where,\ } v^{n-1} = \mu v^{n-2} - \eta b_{n-2})\\
+    &= \mu^2 v^{n-2} - \mu \eta b_{n-2} - \eta b_{n-1} \\
+    &= \mu^2 (\mu v^{n-3} - \eta b_{n-3}) - \mu \eta b_{n-2} - \eta b_{n-1} \\
+    &= \mu^3 v^{n-3} - \eta (\mu^2 b_{n-3} + \mu b_{n-2} + b_{n-1})
+\end{align*}
+このように繰り返すと、
+\[
+v^n = \mu^n v^0 - \eta \sum_{j=0}^{n-1} \mu^{n-1-j} b_j
+\]
+インデックスを整理（$v^{n+1}$ の形にし、和の添字を調整）すると、以下の形式が得られる。
+\begin{empheq}{equation}
+    v^{n+1} = \mu^{n+1} v^0 - \eta \sum_{i=0}^{n} \mu^{n-i} b_i \label{eq:vn_closed}
+\end{empheq}
+この右辺第2項は、勾配$b_i$ と減衰係数 $\mu$ のべき乗との\textbf{畳み込み（Convolution）}の形になっている。
+
+\subsection{Mathematical Tools for Convergence\\ 収束解析のための数学的道具}
+
+$v^{n+1}$ を解析するために、次の畳み込み級数に関する定義と定理を導入する。
+
+\begin{dfn}[Convolution Series]\label{dfn:convolution_series}\ \\
+    2つの数列 $(a_n)_{n \geq 0}$ と $(b_n)_{n \geq 0}$ に対し、その畳み込み級数 $(c_n)_{n \geq 0}$ は以下のように定義される。
+    \[
+    c_n = \sum_{i=0}^{n} a_i b_{n-i}
+    \]
+    また、無限級数としての畳み込みは $\sum_{n \geq 0} c_n$ で表される。
+\end{dfn}
+
+\begin{prop}[Limit of Convolution Term]\footnotemark[5]\label{prop:limit}\ \\
+    実数列 $(a_n)$ が $0$ に収束し、級数 $\sum b_n$ が絶対収束すると仮定する。このとき、畳み込み項の極限は $0$ になる。
+    \[
+    \lim_{n \to \infty} \sum_{i=0}^{n} a_i b_{n-i} = 0
+    \]
+\end{prop}
+\footnotetext[5]{畳み込み級数の極限については、\textbf{Appendix\ B.\ \ref{app:5.2}} を参照してください。}
+\begin{thm}[Convergence of Convolution Series]\footnotemark[6]\label{thm:convergence}\ \\
+    級数 $\sum a_n$ が収束し、級数 $\sum b_n$ が絶対収束するとする。このとき、それらの畳み込み級数 $\sum c_n$ も収束し、その和は各級数の和の積に等しい。
+    \[
+    \sum_{n \ge 0} \left( \sum_{i=0}^{n} a_i b_{n-i} \right) = \left( \sum_{n \ge 0} a_n \right) \left( \sum_{n \ge 0} b_n \right)
+    \]
+\end{thm}
+\footnotetext[6]{畳み込み級数の収束については、\textbf{Appendix\ B.\ \ref{app:5.3}} を参照してください。}
+\subsection{Main Convergence Results\\ 主要な収束結果}
+
+以上の道具を用いて、モーメンタム法の収束条件を記述する以下の重要な命題を証明する。
+
+\begin{prop}[Convergence of Momentum Method]\ \\
+    \begin{enumerate}[label=(\alph*)]
+        \item もし勾配 $\nabla f(x^n)$ が $0$ に収束するならば、速度列 $(v^n)$ も $n \to \infty$ で $0$ に収束する。
+        \item もし勾配のノルムの級数 $\sum_{n \ge 0} \|\nabla f(x^n)\|$ が収束するならば、数列 $(x^n)$ および $(v^n)$ は共に収束する。
+    \end{enumerate}
+\end{prop}
+
+
+\paragraph{(a) の証明}
+
+\begin{proof}\ \\
+
+\noindent
+式 \eqref{eq:vn_closed} を考える。
+\[
+v^{n+1} = \mu^{n+1} v^0 - \eta \sum_{i=0}^{n} \mu^{n-i} b_i
+\]
+ここで $0 < \mu < 1$ であるため、$\mu^n$ は $n \to \infty$ で $0$ に収束する。よって$\mu^{n+1} v^0 = 0$。\\
+第2項について：
+\begin{itemize}
+    \item 数列 $\mu^n$ は幾何級数であり、$\sum |\mu^n|$ は絶対収束する。
+    \item 仮定より $b_n = \nabla f(x^n) \to 0$ である。
+\end{itemize}
+これらを \textbf{\texttt{Prop.}\ref{prop:limit}} に適用（$a_i$を $b_i$、$b_{n-i}$を$\mu^{n-i}$とみなす）すると、畳み込み項の極限は0となる。
+したがって、
+\[
+v^* = \lim_{n \to \infty} v^{n+1} =  v^0 \cdot 0 - \eta \cdot 0 = 0
+\]
+\end{proof}
+
+\paragraph{(b) の証明}
+\begin{proof}\ \\
+
+\noindent
+仮定より $\sum \|\nabla f(x^n)\|$ が収束している。級数が収束するための必要条件は一般項が0に収束することであるため\footnotemark[7]、$\|\nabla f(x^n)\| \to 0$、\ie $\nabla f(x^n) \to 0$。
+よって、(a) の結果より直ちに \textbf{$v^n$ は 0 に収束する}。\\
+
+% 本文中の該当箇所
+\footnotetext[7]{級数が収束するための必要条件（一般項が0に収束する）の証明については、\textbf{\ref{app:nec_condition}} を参照してください。}
+
+
+\noindent
+次に $x^n$ の収束性を示す。式 \eqref{eq:xn_closed} より $x^{n+1} = x^0 + \sum_{k=0}^n v^{k+1}$ であるから、級数 $\sum v^{k+1}$ の収束を示せば良い。
+式 \eqref{eq:vn_closed} を代入して整理する。
+\begin{align*}
+    x^{n+1} &= x^0 + \sum_{k=0}^{n} \left( \mu^{k+1} v^0 - \eta \sum_{i=0}^{k} \mu^{k-i} b_i \right) \\
+    &= x^0 + v^0 \sum_{k=0}^{n} \mu^{k+1} - \eta \sum_{k=0}^{n} \left( \sum_{i=0}^{k} \mu^{k-i} b_i \right)
+\end{align*}
+ここで $n \to \infty$ の極限を取る。
+\begin{itemize}
+    \item 第2項：等比級数の和 $\sum \mu^{k+1}$ は収束する（和は $\frac{\mu}{1-\mu}$）。
+    \item 第3項：$\sum \mu^n$ は絶対収束し、$\sum \|b_n\|$ も収束（仮定より）するため、$\sum b_n$ も絶対収束する。よって \textbf{\texttt{Thm.}\ref{thm:convergence}} より、この畳み込み級数も収束する。
+\end{itemize}
+したがって、極限 $x^* = \displaystyle\lim_{n \to \infty} x^{n+1}$ が存在し、以下のように書ける。
+\[
+x^* = x^0 + v^0 \frac{\mu}{1-\mu} - \frac{\eta}{1-\mu} \sum_{n \ge 0} \nabla f(x^n)
+\]
+$x^*$は閉じた形式の解があることにより、$x^n$ も収束することが示された。
+\end{proof}
+
+\section{Nesterov Accelerated Gradient (NAG)}
+
+\begin{rem}{Nesterov Accelerated Gradient}{nag}
+    標準的なモーメンタム法の改良版として、Nesterov (1983) によって提案された \textbf{NAG} がある。
+    これは勾配を計算する位置を変更する手法である。
+    現在の位置 $x^n$ で勾配を計算する代わりに、慣性項によって「次に到達するであろう位置」$x^n + \mu v^n$ で勾配を評価する。
+    \begin{empheq}{align}
+        x^{n+1} &= x^n + v^{n+1} \label{eq:nag_x} \\
+        v^{n+1} &= \mu v^n - \eta \nabla f(x^n + \mu v^n) \label{eq:nag_v}
+    \end{empheq}
+    この「先読み（Look-ahead）」により、NAGは振動を抑制し、収束率を向上させることができる。
+\end{rem}
+
+以下に、NAGのアルゴリズム的な詳細と、なぜこの手法が標準的なモーメンタム法より優れているのか、その\textbf{更新ロジック}と\textbf{その改善点}に分けて分析する。
+
+\subsection{Update Logic of NAG\\ \ NAGの更新ロジック}
+
+数式 \eqref{eq:nag_x} と \eqref{eq:nag_v} は理論的に美しいが、実装においては「勾配を計算する点」と「実際に更新する点」が異なるため、手順を明確に理解する必要がある。NAGは以下の2段階のプロセスと解釈できる。
+
+\begin{enumerate}[label=\textbf{Step \arabic*.}]
+    \item \textbf{予測（Prediction）}: 
+    まず、勾配を無視して、慣性（Momentum）だけで移動した場合の仮の位置 $\hat{x}^n$ を計算する。
+    \[ \hat{x}^n = x^n + \mu v^n \]
+    \item \textbf{修正（Correction）}: 
+    この「先読みした位置 $\hat{x}^n$」における勾配 $\nabla f(\hat{x}^n)$ を計算し、それを用いて現在の速度ベクトルを修正し、最終的な位置更新を行う。
+    \[ v^{n+1} = \mu v^n - \eta \nabla f(\hat{x}^n) \]
+    \[ x^{n+1} = x^n + v^{n+1} \]
+\end{enumerate}
+
+このロジックを直感的に言えば、\textbf{「盲目のハイカー」と「先を見通すハイカー」の違い}である。
+標準的なMomentum法は、現在の斜度だけを見て勢いよく飛び出すが、NAGは「このまま進んだらどうなるか」を一旦確認してから、足の踏み出し方を微調整するのである。
+
+\subsection{Major Improvements\\ 主要な改善点}
+
+NAGが標準的な勾配降下法（Gradient Descent, GD）やMomentum法よりも優れている理由は、以下である。
+
+\subsubsection{Correction of Overshooting\\ Overshoot（行き過ぎ）の抑制}
+
+谷底（最適解）に向かってボールが転がり落ちる状況を想像してほしい。
+\begin{itemize}
+    \item \textbf{Standard Momentum}: 谷底に近づいても、過去の加速（$\mu v^n$）が残っているため、勢い余って谷底を通り過ぎてしまい、反対側の斜面を登ってしまう（オーバーシュート）。現在の位置での勾配は減速を指示するかもしれないが、過去の勢いが勝る場合がある。
+    \item \textbf{NAG (Look-ahead)}: NAGは「もし慣性で進んだら、谷底を通り過ぎて反対側の斜面（上り坂）に達する」ことを\textbf{移動する前に}検知する\footnotemark[8]。
+    先読み点での勾配 $\nabla f(x^n + \mu v^n)$ は「戻れ（逆方向）」という情報を指しているため、速度更新式において慣性項 $\mu v^n$ を強力に打ち消すブレーキとして作用する。
+\end{itemize}
+\footnotetext[8]{この先読み効果により、パラメータの更新ベクトルは常に「曲率（Curvature）」の情報を間接的に取り込むことになる。}
+
+% \subsubsection{Second Improvement: Convergence Rate Order\\ \quad 第2の改善：収束率のオーダー向上}
+
+% 数学的な観点から見たNAGの最大の貢献は、収束速度の理論的な限界（オーダー）を更新したことにある。
+% 凸関数 $f$ の最小化問題を考えるとき、最適解 $x^*$ との誤差 $f(x^n) - f(x^*)$ がどれくらいの速さで0に近づくかを評価する。
+
+% \begin{itemize}
+%     \item \textbf{Gradient Descent (GD)}: 収束率は $O(1/n)$ である。つまり、誤差を $1/100$ にするには、およそ $100$ 回の反復が必要となる。
+%     \[ f(x^n) - f(x^*) \le \frac{L \|x^0 - x^*\|^2}{2n} \]
+%     \item \textbf{Nesterov (NAG)}: 収束率は \textbf{$O(1/n^2)$} に改善される。これは、誤差を $1/100$ にするのに $\sqrt{100}=10$ 回程度の反復で済むことを示唆し、劇的な高速化である。
+%     \[ f(x^n) - f(x^*) \le \frac{2L \|x^0 - x^*\|^2}{(n+1)^2} \]
+% \end{itemize}
+% この $O(1/n^2)$ というオーダーは、1階微分（勾配）のみを使用するアルゴリズムの中で達成可能な\textbf{理論上の最速値（Optimal Rate）}であることが証明されている。
+
+% \vspace{1em}
+% 以下に、反復回数 $n$ に対する誤差の減衰速度の違いを比較する。
+
+% \begin{figure}[H]
+%     \centering
+%     \begin{tikzpicture}[scale=1.0, >=Stealth]
+%         % Axes
+%         \draw[->] (0,0) -- (6,0) node[right] {Iterations $n$};
+%         \draw[->] (0,0) -- (0,4) node[left] {Error $\log(f(x^n) - f^*)$};
+        
+%         % O(1/n) Curve - Gradient Descent
+%         \draw[thick, red, domain=0.5:5.5, samples=100] plot (\x, {3.5 - 0.6*\x}) node[right] {\small GD: $O(1/n)$};
+        
+%         % O(1/n^2) Curve - Nesterov
+%         % Representing faster decay (steeper slope in log-log or just conceptual)
+%         % For visual clarity, we draw a curve that drops faster
+%         \draw[thick, blue, domain=0.5:5.5, samples=100] plot (\x, {3.5 - 1.2*\x + 0.1*\x*ln(\x)}) node[right, yshift=-0.3cm] {\small NAG: $O(1/n^2)$};
+        
+%         % Dashed lines for reference
+%         \draw[dashed, gray] (1,0) -- (1,3.5);
+%         \node[below] at (1,0) {\scriptsize Start};
+        
+%         % Annotation arrow
+%         \draw[->, gray, thick] (3, 1.7) -- (3, 0.5);
+%         \node[right, gray, align=left] at (3.1, 1.2) {\footnotesize Faster\\ \footnotesize Convergence};
+        
+%     \end{tikzpicture}
+%     \caption{Conceptual comparison of convergence rates. NAG (Blue) reduces the error signiﬁcantly faster than standard Gradient Descent (Red) as iterations increase.}
+%     \label{fig:nag_convergence}
+% \end{figure}
+\newpage
+\subsection{Visualizing the Vector Update Difference\\ ベクトル更新の幾何学的比較}
+最後に、標準的なモーメンタム法とNAGのベクトル更新の違いは以下のようである。
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[scale=1.1, >=Stealth]
+        % --- Standard Momentum ---
+        \begin{scope}[shift={(-4,0)}]
+            \node[anchor=south west] at (-0.5, 2.5) {\textbf{Standard Momentum}};
+            \coordinate (start) at (0,0);
+            \coordinate (mom) at (2, 0.8);
+            \coordinate (grad) at (0.5, -1.5); % Gradient vector at x^n
+            
+            % Momentum step (History)
+            \draw[->, thick, brown] (start) -- (mom) node[midway, above left] {\small $\mu v^n$};
+            
+            % Gradient step (Current location)
+            \draw[->, thick, red] (start) -- ++(grad) node[midway, left] {\small $-\eta \nabla f(x^n)$};
+            
+            % Actual step (Sum)
+            \draw[->, ultra thick, blue] (start) -- ($(mom)+(grad)$) node[midway, right, xshift=2pt] {\small $v^{n+1}$};
+            
+            % Dashed sum lines
+            \draw[dashed, gray!60] (mom) -- ($(mom)+(grad)$);
+            \draw[dashed, gray!60] ($(start)+(grad)$) -- ($(mom)+(grad)$);
+            
+            \fill (start) circle (2pt) node[below left] {$x^n$};
+            \fill ($(mom)+(grad)$) circle (2pt) node[below right] {$x^{n+1}$};
+        \end{scope}
+
+        % --- Nesterov ---
+        \begin{scope}[shift={(3,0)}]
+            \node[anchor=south west] at (-0.5, 2.5) {\textbf{Nesterov (NAG)}};
+            \coordinate (start) at (0,0);
+            \coordinate (mom) at (2, 0.8);
+            % Gradient at the "Look ahead" point
+            % The gradient here pulls back stronger
+            \coordinate (grad_look) at (0.2, -1.5); 
+            
+            % 1. Momentum jump (Look ahead)
+            \draw[->, thick, brown] (start) -- (mom) node[midway, above left] {\small $\mu v^n$};
+            \fill (mom) circle (1.5pt);
+            \node[right, darkgray] at (mom) {\scriptsize \textit{Look-ahead} $\hat{x}$};
+            
+            % 2. Gradient step FROM the look-ahead point
+            \draw[->, thick, red] (mom) -- ++(grad_look) node[midway, right] {\small $-\eta \nabla f(x^n \!+\! \mu v^n)$};
+            
+            % 3. Actual Resulting Step
+            \draw[->, ultra thick, blue] (start) -- ($(mom)+(grad_look)$) node[midway, below left] {\small $v^{n+1}$};
+            
+            \fill (start) circle (2pt) node[below left] {$x^n$};
+            \fill ($(mom)+(grad_look)$) circle (2pt) node[below] {$x^{n+1}$};
+        \end{scope}
+        
+    \end{tikzpicture}
+    \caption{Vector summation comparison.\\ \textbf{Left:} Standard Momentum adds gradient at $x^n$ and momentum. \\ \textbf{Right:} NAG moves by momentum first, measures gradient at the look-ahead point, then corrects.}
+\end{figure}
+
+
+
 \newpage
 \appendix
-\section{補足証明：行列の等比級数の和と逆行列}
+\section{補足証明：行列の等比級数の和と逆行列}\label{app:inverse}
 
 \begin{reidai}{行列の等比級数の和}{geom_matrix}
 $S_n = \displaystyle\sum_{k=0}^{n-1} M^k$ と置き、等式の両辺に$I - M$を掛けると、
@@ -440,9 +720,9 @@ $S_n = I + M + \dots + M^{n-1}$ は $M$ の多項式であるため、$M$ およ
 行列 $M$ と $(\mathbb{I} - M)$ が可換であることを示す。
 \begin{align*}
     M(\mathbb{I} - M) &= M - M^2 \\
-    \footnotemark[5](\mathbb{I} - M)M &= M - M^2
+    \footnotemark[9](\mathbb{I} - M)M &= M - M^2
 \end{align*}
-\footnotetext[5]{$\mathbb{I} M = \begin{pmatrix} 1 & 0\\ 0 & 1 \end{pmatrix} \cdot \begin{pmatrix} 1 & \epsilon \\ -\epsilon a^2 & \mu \end{pmatrix} = \begin{pmatrix} 1 & \epsilon \\ -\epsilon a^2 & \mu \end{pmatrix} = \begin{pmatrix} 1 & \epsilon \\ -\epsilon a^2 & \mu \end{pmatrix}\cdot \begin{pmatrix} 1 & 0\\ 0 & 1 \end{pmatrix} = M \mathbb{I} = M$}
+\footnotetext[9]{$\mathbb{I} M = \begin{pmatrix} 1 & 0\\ 0 & 1 \end{pmatrix} \cdot \begin{pmatrix} 1 & \epsilon \\ -\epsilon a^2 & \mu \end{pmatrix} = \begin{pmatrix} 1 & \epsilon \\ -\epsilon a^2 & \mu \end{pmatrix} = \begin{pmatrix} 1 & \epsilon \\ -\epsilon a^2 & \mu \end{pmatrix}\cdot \begin{pmatrix} 1 & 0\\ 0 & 1 \end{pmatrix} = M \mathbb{I} = M$}
 したがって、$M(\mathbb{I} - M) = (\mathbb{I} - M)M$ が成立する。
 \paragraph{$M$と$(\mathbb{I} - M)^{-1}$が可換となる証明}\ \\
 行列 $M$ と $(\mathbb{I} - M)^{-1}$ が可換であることを示す。
@@ -472,4 +752,202 @@ $S_n = I + M + \dots + M^{n-1}$ は $M$ の多項式であるため、$M$ およ
 \[ S_n = (\mathbb{I} - M)^{-1}(\mathbb{I} - M^n) = (\mathbb{I} - M^n)(\mathbb{I} - M)^{-1} \] 
 となる。
 \end{proof}
+\newpage
+\section{補足証明：畳み込み級数の収束性解析}
+
+\subsection{命題 5.2 の証明：畳み込み項の極限}\label{app:5.2}
+
+\begin{reidai}{Limit of Convolution Term}{prop_conv_limit}
+    実数列 $(a_n)$ が $0$ に収束し、級数 $\sum_{n=0}^\infty b_n$ が絶対収束すると仮定する。このとき、以下の極限が成立する。
+    \[ \lim_{n \to \infty} c_n = 0, \quad \text{where } c_n = \sum_{i=0}^{n} a_i b_{n-i} \]
+\end{reidai}
+\vspace{0.5em}
+\begin{proof}\ \\
+\noindent
+目的は、任意の $\epsilon > 0$ に対して、ある $N$ が存在し、すべての $n > N$ において $|c_n| < \epsilon$ となることを示すことである。
+(\ie $\forall\epsilon > 0, \exists N \in \mathbb{N}$ s.t. $\forall \mathbb{N} \ni n > N\implies |c_n| < \epsilon$)\\ 
+まず、項の順序を入れ替えて整理する（$j = n-i$ とおく）。
+\[
+c_n = \sum_{i=0}^{n} a_i b_{n-i} = \sum_{j=0}^{n} b_j a_{n-j}
+\]
+したがって、以下を使って証明する。
+\[
+|c_n| = \left| \sum_{j=0}^{n} b_j a_{n-j} \right| \le \sum_{j=0}^{n} |b_j| |a_{n-j}|
+\]
+
+\paragraph{定数の準備}
+\begin{enumerate}
+    \item 仮定より $\sum b_n$ は絶対収束するため、その総和を $\mathbf{B} = \sum_{n=0}^\infty |b_n|$ と置く。$B=0$ ならば自明であるため、$B > 0$ とする。
+    \item 仮定より $a_n \to 0$ である。収束する数列は有界であるため、ある定数 $M > 0$ が存在して、すべての $n$ について $|a_n| < M$ が成り立つ。
+\end{enumerate}
+
+\paragraph{収束の定義}
+\begin{enumerate}
+  \item  $\forall \epsilon >0, \sum |b_n|< \infty: \exists N_1 \in \mathbb{N}$ s.t. $\forall k \in \mathbb{N},\ k > N_1\implies \sum_{j=k+1}^{\infty} |b_j|  < \dfrac{\epsilon}{2M}\quad (M>0)$
+  \vspace{1em}
+  \item  $a_n\to 0\ (n\to \infty)$より、$\forall \epsilon > 0, \exists N_2 \in \mathbb{N}$ s.t. $\forall \mathbb{N}\ni m > N_2\implies |a_m| < \dfrac{\epsilon}{2B}\quad (B>0)$
+  
+\end{enumerate}
+
+\paragraph{和の分割}\ \\
+\noindent
+任意の $\epsilon > 0$ を固定する。和を「前半部分」と「後半部分」の2つに分割して計算する。
+整数 $K=N_1$を用いて、和を分ける。
+\[
+|c_n| \le \underbrace{\sum_{j=0}^{K} |b_j| |a_{n-j}|}_{\text{第1項}} + \underbrace{\sum_{j=K+1}^{n} |b_j| |a_{n-j}|}_{\text{第2項}}
+\]
+
+\paragraph{第1項の評価（$a$の収束性を使用）}\ \\
+\noindent
+$n \to \infty$ とすると、各項の $a_{n-j}$ のインデックス $n-j$ は無限大に近づく。
+$a_n \to 0$ であるため、すべての $0 \le j \le K$ に対して以下を満たすことができる。
+\[
+|a_{n-j}| < \frac{\epsilon}{2B}
+\]
+このとき、$n-j>N_2$ where, $0 \le j \le K$ が成り立つため、$n > N_2 + K$ (ここで、$j = K$)が必要である。そのため、$m = n-j \geq n-K > N_2$ となる。
+したがって、第1項は以下のように評価できる。
+\[
+\text{第1項} = \sum_{j=0}^{K} |b_j| |a_{n-j}| < \frac{\epsilon}{2B} \sum_{j=0}^{K} |b_j| \le \frac{\epsilon}{2B} \cdot B = \frac{\epsilon}{2}
+\]
+
+\paragraph{第2項の評価（$b$の絶対収束性を使用）}\ \\
+\noindent
+$j=K+1 > K=N_1$かつ$\left|a_{n-j}\right| \leq M$であるため、第2項は以下のように評価できる。
+\[
+\text{第2項} = \sum_{j=K+1}^{n} |b_j| |a_{n-j}| \leq M \sum_{j=K+1}^{n} |b_j| \le M \sum_{j=K+1}^{\infty} |b_j| < M \cdot \frac{\epsilon}{2M} = \frac{\epsilon}{2}
+\]
+
+\noindent
+以上より、十分大きな $n$ に対して、
+\[
+|c_n| \le \sum_{j=0}^{n} |b_j| |a_{n-j}| < \frac{\epsilon}{2} + \frac{\epsilon}{2} = \epsilon
+\]
+が成り立つ。よって、$\displaystyle\lim_{n \to \infty} c_n = 0$ である。
+\end{proof}
+\newpage
+\subsection{定理 5.3 の証明：畳み込み級数の収束}\label{app:5.3}
+
+\begin{reidai}{Convergence of Convolution Series}{thm_conv_proof}
+    級数 $\sum a_n$ が値 $A$ に収束し、級数 $\sum b_n$ が値 $B$ に\textbf{絶対収束}するとする。
+    このとき、畳み込み級数 $C_n = \sum_{k=0}^n c_k$ （ただし $c_k = \sum_{i=0}^k a_i b_{k-i}$）は収束し、その和は $AB$ に等しい。
+    \[
+    \sum_{n=0}^{\infty} c_n = \left(\sum_{n=0}^{\infty} a_n\right) \left(\sum_{n=0}^{\infty} b_n\right)
+    \]
+\end{reidai}
+\vspace{0.5em}
+\begin{proof}\ \\
+\noindent
+各級数の部分和を以下のように定義する。
+\[
+A_n = \sum_{i=0}^{n} a_i, \quad B_n = \sum_{i=0}^{n} b_i, \quad C_n = \sum_{k=0}^{n} c_k
+\]
+目的は、$n \to \infty$ のとき $C_n \to AB$ を示すことである。
+
+\paragraph{部分和 $C_n$ の変形}\ \\
+\noindent
+$C_n$ の定義を展開し、和の順序を入れ替える（下図の三角形領域での和をイメージすると分かりやすい）。
+\begin{align*}
+    C_n &= \sum_{k=0}^{n} c_k = \sum_{k=0}^{n} \sum_{i=0}^{k} a_i b_{k-i} \\
+    &= a_0 b_0 \\
+    &+ (a_0 b_1 + a_1 b_0) \\
+    &+ \dots \\
+    &+ (a_0 b_n + \dots + a_n b_0)
+\end{align*}
+これを $b_j$ についてまとめ直す（$a$ ではなく $b$ に注目するのは、$\sum b_n$ が絶対収束するという強い条件を持っているためである）。
+$b_k$ が係数となる項を集めると、
+\[
+C_n = \sum_{k=0}^{n} b_k (a_0 + a_1 + \dots + a_{n-k}) = \sum_{k=0}^{n} b_k A_{n-k}
+\]
+となる。
+
+\paragraph{誤差項への分解}\ \\
+\noindent
+$A_n \to A$ であるから、誤差項 $\delta_n$ を定義する。
+\[
+A_n = A + \delta_n \quad (\text{ただし } \lim_{n \to \infty} \delta_n = 0)
+\]
+これを $C_n$ の式に代入する。
+\begin{align*}
+    C_n &= \sum_{k=0}^{n} b_k (A + \delta_{n-k}) \\
+    &= \sum_{k=0}^{n} b_k A + \sum_{k=0}^{n} b_k \delta_{n-k} \\
+    &= A \underbrace{\sum_{k=0}^{n} b_k}_{B_n} + \underbrace{\sum_{k=0}^{n} b_k \delta_{n-k}}_{E_n (\text{誤差項})} \\
+    &= A B_n + E_n
+\end{align*}
+
+\paragraph{極限の評価}\ \\
+\noindent
+$n \to \infty$ のときの計算を確認する。
+\begin{itemize}
+    \item 第1項: $A B_n$ について
+    $B_n$ は $B$ に収束するため、$\displaystyle\lim_{n \to \infty} A B_n = AB$ である。
+    
+    \item 第2項: $E_n = \displaystyle\sum_{k=0}^{n} b_k \delta_{n-k}$ について
+    、これは数列 $(b_k)$ と数列 $(\delta_k)$ の畳み込みになっている。
+    ここで、以下の条件が満たされている。
+    \begin{enumerate}
+        \item 数列 $(\delta_n)$ は $0$ に収束する（定義より）。
+        \item 級数 $\sum b_n$ は絶対収束する（定理の仮定より）。
+    \end{enumerate}
+    これはまさに、前述の \textbf{\texttt{Prop.}\ref{tha:prop_conv_limit}} の条件と完全に一致する。
+    したがって、命題5.2を適用すると、
+    \[
+    \lim_{n \to \infty} E_n = 0
+    \]
+\end{itemize}
+\noindent
+以上より、
+\[
+\lim_{n \to \infty} C_n = \lim_{n \to \infty} (A B_n + E_n) = AB + 0 = AB = \left(\sum_{n=0}^{\infty} a_n\right) \left(\sum_{n=0}^{\infty} b_n\right)
+\]
+となり、定理は証明された。
+\end{proof}
+\newpage
+\section{補足証明：級数収束の必要条件} \label{app:nec_condition}
+
+\begin{prop}[Necessary Condition for Series Convergence]\ \\
+  \noindent
+    無限級数 $\displaystyle\sum_{n=0}^{\infty} a_n$ が収束するならば、その一般項 $a_n$ は $0$ に収束する。
+    \[
+    \sum_{n=0}^{\infty} a_n = S \implies \lim_{n \to \infty} a_n = 0
+    \]
+\end{prop}
+\vspace{0.5em}
+\begin{proof}\ \\
+\noindent
+級数 $\sum a_n$ が値 $S$ に収束するということは、その第 $n$ 部分和 $S_n$ の極限が存在し、それが $S$ であることを意味する。
+\[
+S_n = \sum_{k=0}^{n} a_k, \quad \text{and} \quad \lim_{n \to \infty} S_n = S
+\]
+ここで、一般項 $a_n$ （ただし $n \ge 1$）は、隣り合う部分和の差として表現できる。
+\[
+a_n = S_n - S_{n-1}
+\]
+この等式の両辺について $n \to \infty$ の極限をとる。
+\begin{itemize}
+    \item $n \to \infty$ のとき、当然ながら $n-1 \to \infty$ である。
+    \item したがって、数列 $(S_n)$ が $S$ に収束するならば、1つ項をずらした数列 $(S_{n-1})$ も同じ値 $S$ に収束する。
+    \[ \lim_{n \to \infty} S_{n-1} = S \]
+\end{itemize}
+極限の線形性（差の極限は極限の差）を用いて計算すると、
+\begin{align*}
+    \lim_{n \to \infty} a_n &= \lim_{n \to \infty} (S_n - S_{n-1}) \\
+    &= \lim_{n \to \infty} S_n - \lim_{n \to \infty} S_{n-1} \\
+    &= S - S \\
+    &= 0
+\end{align*}
+よって、$\displaystyle\lim_{n \to \infty} a_n = 0$ が示された。
+\end{proof}
+\newpage
+\begin{rem}[Note on Converse]\ \\
+  \noindent
+    この命題の逆は真ではないである。
+    \ie 「一般項 $a_n \to 0$ であっても、級数 $\sum a_n$ が収束するとは限らない」。\\
+
+    \noindent
+    代表的な反例は\textbf{調和級数} $\sum \frac{1}{n}$ である。
+    \[ \lim_{n \to \infty} \frac{1}{n} = 0 \quad \text{であるが、} \quad \sum_{n=1}^{\infty} \frac{1}{n} = \infty \quad (\text{発散}) \]
+    したがって、$\nabla f(x^n) \to 0$ が確認できたとしても、それだけで $x^n$ が収束する（位置が止まる）保証にはならず、より強い条件（例：Prop 4.4.6 (b) の絶対収束など）が必要となる。
+\end{rem}
+
+
 \end{document}
