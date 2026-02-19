@@ -1,0 +1,429 @@
+\documentclass[dvipdfmx,a4paper]{jsarticle}%pLatexでコンパイルしてください
+\usepackage{application}
+\usetikzlibrary{decorations.pathmorphing}
+\begin{document}
+\maketitle
+
+
+\section{Introduction: 長時間動画の生成における「崩壊」問題}
+\thispagestyle{plain}
+動画生成モデルにおいて、15秒を超えるような長時間生成は極めて困難な課題である。従来のモデルでは時間ステップが進むにつれて、物体の形状崩壊と呼ばれるアイデンティティの消失が頻発する。本レジュメでは、Seedance 2.0が導入した\textbf{全域注意制約（Global Attention Constraint）}がいかにして誤差の指数関数的増大を抑制し、長期間の一致性を数学的に保証しているかを力学系の観点から解説する。
+
+\begin{dfn}[自己回帰的生成の不安定性]
+動画の予測変数 $\hat{z_t}$ が直前のフレーム $\hat{  }$ のみに依存して生成される場合、各ステップで生じる微小な推論誤差が時間とともに累積し、非線形な系において指数関数的に増幅される現象を指す。
+\end{dfn}
+
+\section{Mathematical Modeling: 誤差伝播の解析}
+
+動画生成プロセスを、潜在空間 $\mathbb{R}^d$ 上の離散時間力学系として定式化し、その安定性を解析する。
+
+\subsection{自己回帰生成の力学方程式}
+
+従来の動画生成モデルは、一般にマルコフ連鎖（\textbf{Markov Chain}）として記述される。すなわち、時刻 $t$ における生成フレーム（または予測変数）$\hat{z}_t$ は、直前の生成結果 $\hat{z}_{t-1}$ を入力とする生成関数 $F$ によって決定される。
+
+\begin{equation}
+    \hat{z}_t = F(\hat{z}_{t-1}) + \xi_t \label{eq:creatable function}
+\end{equation}
+
+ここで、各変数の定義は以下の通りである。
+\begin{itemize}
+    \item $F\footnotemark[1]: \mathbb{R}^d \to \mathbb{R}^d$ : ニューラルネットワークによってパラメータ化された遷移関数（生成モデル）。
+    \item \textbf{独立同分布}（i.i.d.）なノイズ$\xi_t \sim \mathcal{N}(0, \Sigma)\footnotemark[2]$ : モデル化できない確率的なノイズ（固定誤差）。
+\end{itemize}
+\footnotetext[1]{Sora, SeedanceといったAI生成モデルで使われた$F$の構造は自己注意機構（Self-Attention) + フィードフォワードネットワーク（MLP）であり,\ \ie $y = \mathrm{Attention}(z_{t-1}) + z_{t-1}
+\implies F(z_{t-1}) = \mathrm{MLP}(\mathrm{LayerNorm}(y)) + y$である。ここでの \(F\) には膨大なパラメータが含まれている。これは \(z_{t-1}\) の各要素間の関連（例えば「猫の手」と「猫の頭」の位置関係）を計算し、その後それらがどのように一緒に動くかを予測する。}
+\subsection{テイラー展開による線形化解析}
+\footnotetext[2]{\(\xi_t \sim \mathcal{N}(0,\Sigma)\) という表現において、\(\Sigma = \sigma^2 I\) は多次元正規分布の共分散行列（Covariance Matrix）を表す。\[
+\Sigma
+= \sigma^2
+\begin{bmatrix}
+1 & 0 & \cdots & 0\\
+0 & 1 & \cdots & 0\\
+\vdots & \vdots & \ddots & \vdots\\
+0 & 0 & \cdots & 1
+\end{bmatrix}
+=
+\begin{bmatrix}
+\sigma^2 & 0 & \cdots & 0\\
+0 & \sigma^2 & \cdots & 0\\
+\vdots & \vdots & \ddots & \vdots\\
+0 & 0 & \cdots & \sigma^2
+\end{bmatrix}
+\]}
+
+
+生成された軌道 $\hat{z}_t$ と、理想的な真の軌道 $z_t$ との間の誤差 $\boldsymbol{\epsilon}_t \coloneqq \hat{z}_t - z_t$ を解析するため、生成関数 $F(\hat{z}_{t-1})$ を真の値 $z_{t-1}$ の近傍で1次のテイラー展開（\textbf{Taylor Expansion}）を用いて線形近似する。
+
+\begin{equation}
+    F(\hat{z}_{t-1}) \approx F(z_{t-1}) + \mathbf{J} \cdot (\hat{z}_{t-1} - z_{t-1})
+\end{equation}
+
+この近似式における各項の意味は以下の通りである。
+
+\begin{enumerate}
+    \item \textbf{理想遷移}: $F(z_{t-1}) \approx z_t$ \\
+    理想的な学習が行われている場合、真の入力 $z_{t-1}$ に対する関数の出力は、真の次の状態 $z_t$ に等しいと仮定できる。
+    
+    \item \textbf{ヤコビ行列}: $\mathbf{J} = \nabla F|_{z_{t-1}} \in \mathbb{R}^{d \times d}$ \\
+    これは生成関数の入力に対する感度を表すヤコビ行列（\textbf{Jacobian Matrix}）であり、入力の微小な変化が主力にどの程度影響するか（拡大するか縮小するか）を決定する線形写像である。
+    
+    \item \textbf{誤差項}: $\boldsymbol{\epsilon}_{t-1} = \hat{z}_{t-1} - z_{t-1}$ \\
+    前ステップまでの累積誤差ベクトル。
+\end{enumerate}
+
+これらを[\ref{eq:creatable function}]の力学方程式に代入することで、誤差の発展方程式が得られる。
+\begin{align}
+    \hat{z}_t &\approx z_t + \mathbf{J} \cdot \boldsymbol{\epsilon}_{t-1} + \xi_t \notag \\[-0.2cm]
+    \intertext{\centering \(\Downarrow\)}
+    \underbrace{\hat{z}_t - z_t}_{\boldsymbol{\epsilon}_t} &\approx \mathbf{J} \cdot \boldsymbol{\epsilon}_{t-1} + \xi_t
+\end{align}
+
+この線形漸化式 $\boldsymbol{\epsilon}_t \approx \mathbf{J} \boldsymbol{\epsilon}_{t-1} + \xi_t$ こそが、動画生成の安定性を分析する基礎となる。行列 $\mathbf{J}$ の性質（特にそのスペクトル半径\footnotemark[3]$\rho(\mathbf{J}$）が、誤差 $\boldsymbol{\epsilon}_t$ が時間とともに減衰するか、あるいは爆発するかを決める要因となる。\\
+先ほどの誤差伝播の式 \(\boldsymbol{\epsilon}_t \approx \mathbf{J}\cdot \boldsymbol{\epsilon}_{t-1}\) において，ヤコビ行列 \(\mathbf{J}\) のスペクトル半径 \(\rho(\mathbf{J})\) は，\textbf{「誤差の大きさ」}を決定する．以下のケースに分けて考える．
+
+\begin{itemize}
+  \item \(\rho(\mathbf{J})>1\):
+  \begin{itemize}
+    \item 誤差はステップごとに拡大されます．
+    \item これが\textbf{「指数関数的発散（Exponential Divergence）」}である．動画は数秒で崩壊される．
+  \end{itemize}
+
+  \item \(\rho(\mathbf{J})<1\):
+  \begin{itemize}
+    \item 誤差はステップごとに縮小され，最終的に \(0\) になる．
+    \item 一見良さそうであるが，これは\textbf{「情報が消える」}ことを意味し，動画が静止画になったり，動きがなくなったりする．
+  \end{itemize}
+
+  \item \(\rho(\mathbf{J})\approx 1\):
+  \begin{itemize}
+    \item 誤差は拡大も縮小も言えない．
+    \item Seedance 2.0 が目指しているのがこの状態である．これにより，長時間にわたって動画の形（アイデンティティ\ \textbf{identity}）を保ちつつ，動き続けることができる．
+  \end{itemize}
+\end{itemize}
+\footnotetext[3]{正方行列 $A$ が $n$ 個の固有値 $\lambda_1,\lambda_2,\cdots,\lambda_n$ を持っているとしする。スペクトル半径 $\rho(A)$ は次のように定義されます：
+\[
+\rho(A)=\max\left(|\lambda_1|,|\lambda_2|,\cdots,|\lambda_n|\right).
+\]
+\ie 原点から最も遠い固有値までの距離を表す。}
+
+
+% \begin{prop}[誤差の指数的爆発]
+% ヤコビ行列の最大固有値（スペクトル半径）を $\rho(\mathbf{J}) = 1 + \lambda$ とし、$\lambda > 0$ であるとき、誤差は以下のように成長する。
+% \begin{equation}
+%     \|\boldsymbol{\epsilon}_t\| \propto (1+\lambda)^t \approx e^{\lambda t}
+% \end{equation}
+% \end{prop}
+% \begin{proof}
+% \ \\
+% $\boldsymbol{\epsilon}_t = \mathbf{J}^t \boldsymbol{\epsilon}_0 + \sum_{k=1}^t \mathbf{J}^{t-k} \xi_k$ より、主要項は比比数列の和として $(1+\lambda)^t$ のオーダーで支配される。$\lambda > 0$ は系がカオス的であることを意味し、短時間で解が多様体から逸脱する。
+% \end{proof}
+
+\begin{prop}[誤差の指数的爆発]
+ヤコビ行列 $\mathbf{J}$ のスペクトル半径（最大固有値の絶対値）を $\rho(\mathbf{J}) = \mu$ とし、$\mu = 1 + \lambda$（ただし $\lambda > 0$）であるとする。このとき、十分大きな時間 $t$ において、累積誤差のノルムは以下のように成長する。
+\begin{equation}
+    \|\boldsymbol{\epsilon}_t\| \approx C \cdot e^{\lambda t}
+\end{equation}
+ここで $C$ は定数である。すなわち、誤差は時間とともに指数関数的に増大する。
+\end{prop}
+
+\begin{proof}
+\ \\
+誤差の漸化式 $\boldsymbol{\epsilon}_t = \mathbf{J} \boldsymbol{\epsilon}_{t-1} + \xi_t$ を $t=0$ まで再帰的に展開し、そのノルムを評価することで証明する。
+
+\paragraph{漸化式の展開（一般解の導出）}
+漸化式を繰り返し代入する。
+\begin{align}
+    \boldsymbol{\epsilon}_1 &= \mathbf{J} \boldsymbol{\epsilon}_0 + \xi_1 \notag \\
+    \boldsymbol{\epsilon}_2 &= \mathbf{J} \underbrace{(\mathbf{J}\boldsymbol{\epsilon}_0 + \xi_1)}_{\boldsymbol{\epsilon}_1} + \xi_2 = \mathbf{J}^2 \boldsymbol{\epsilon}_0 + \mathbf{J} \xi_1 + \xi_2 \notag \\
+    &\vdots \notag \\
+    \boldsymbol{\epsilon}_t &= \mathbf{J}^t \boldsymbol{\epsilon}_0 + \sum_{k=1}^{t} \mathbf{J}^{t-k} \xi_k
+\end{align}
+ここで、右辺第1項は「初期誤差 $\boldsymbol{\epsilon}_0$ の影響」を表し、第2項は「各ステップで加わるノイズ $\xi_k$ の和」を表す。
+
+\paragraph{スペクトル半径によるノルム評価}
+行列 $\mathbf{J}$ の最大固有値に対応する固有ベクトル方向の成分が支配的になると仮定する。線形代数の基本性質より、十分大きな $n$ に対して \footnotemark[4]$\|\mathbf{J}^n\| \approx \rho(\mathbf{J})^n = \mu^n$ と近似できる。
+三角不等式 $\|\mathbf{a} + \mathbf{b}\| \le \|\mathbf{a}\| + \|\mathbf{b}\|$ を用いて上界を評価する。
+\footnotetext[4]{\ref{proof:ex1}を参照}
+\begin{align}
+    \|\boldsymbol{\epsilon}_t\| &\le \|\mathbf{J}^t \boldsymbol{\epsilon}_0\| + \sum_{k=1}^{t} \|\mathbf{J}^{t-k}\| \|\xi_k\| \notag \\
+    &\le \|\mathbf{J}^t\| \|\boldsymbol{\epsilon}_0\| + \sum_{k=1}^{t} \|\mathbf{J}^{t-k}\| \|\xi_k\| \notag \\
+    &\le \mu^t \|\boldsymbol{\epsilon}_0\| + \bar{\sigma}\sum_{j=0}^{t-1} \mu^j  \quad (\text{ここで } j=t-k, \ \forall k,\ \|\xi_k\| \le \bar{\sigma} \text{ と置く})
+\end{align}
+
+\paragraph{等比級数の和と指数関数近似}
+第2項は公比 $\mu$ の等比数列の和であるため、以下のように計算できる。
+\begin{equation}
+    \sum_{j=0}^{t-1} \mu^j = \frac{\mu^t - 1}{\mu - 1} = \frac{(1+\lambda)^t - 1}{\lambda}\ \ \text{(ここで、$\mu = 1+\lambda$ )}
+\end{equation}
+$\lambda > 0$（拡大系）であるため、時間 $t$ が大きいとき、誤差の増加速度は$\mu^t = (1+\lambda)^t$ の項が支配的となる。
+ネイピア数の定義およびテイラー展開 $\ln(1+x) \approx x$ （$x \ll 1$ の場合）\footnotemark[5]より、
+\footnotetext[5]{テイラー展開より、$\ln(1+x) = x - \frac{x^2}{2} + \frac{x^3}{3} - \cdots \implies\ln(1+x) \to 0\ (x \to 0)$ 、よって $\ln(1+x) \approx x$ となる。}
+\begin{equation}
+    (1+\lambda)^t = \exp\left( \ln((1+\lambda)^t) \right) = \exp\left( t \ln(1+\lambda) \right) \approx \exp(\lambda t)
+\end{equation}
+したがって、誤差全体は $e^{\lambda t}$ のオーダーで成長することが示された。
+\end{proof}
+
+\section{Seedance 2.0: 多様体制約による誤差制御}
+
+Seedance 2.0の核は、生成される $z_t$ を特定の\textbf{多様体（Manifold） $\mathcal{M}$} 上に拘束することにある。
+
+\subsection{ラグランジュ未定乗数法による定式化}
+
+全域注意機構（Global Attention）により定義される制約関数 $C(z_t, z_0) = 0$ を導入し、生成時の目的関数にラグランジュ項を追加する。
+
+\paragraph{制約なしの生成（元の目的関数）}
+通常の動画生成モデル（拡散モデル等）において、時刻 $t$ で生成される潜在変数 $z_t$ は、本来の生成ロス $\mathcal{L}_{\text{diff}}(z_t)$ を最小化するように最適化（更新）される。
+\begin{equation}
+    \min_{z_t} \mathcal{L}_{\text{diff}}(z_t)
+\end{equation}
+しかし、これのみでは時間経過に伴い、モデルが直前のフレームとの連続性のみを重視し、初期フレーム $z_0$ のアイデンティティから徐々にドリフトしてしまう。
+
+\paragraph{多様体制約（ハード制約）の導入}
+そこで、「生成される $z_t$ は、常に初期フレーム $z_0$ と一貫性を保たなければならない」という強い制約を課す。これを $C(z_t, z_0) = 0$ ($C$とは、誤差関数\footnotemark[6])と表す。
+幾何学的には、$C=0$ を満たす点 $z_t$ の集合は高次元空間上の特定の曲面（\textbf{多様体：Manifold}）を形成する。つまり、「生成軌道はこの曲面から逸脱してはならない」というルールである。
+\footnotetext[6]{
+$C(z_t, z_0)$ を特徴の差異を計算する非負の誤差関数(distance/penalty function)とする。
+\begin{equation}
+    C(z_t, z_0) 
+    \begin{cases} 
+        = 0, & z_t \text{ が重要な特徴において } z_0 \text{ と完全に一致する場合（制約を満たす）} \notag \\ 
+        > 0, & z_t \text{ が崩壊し始め、} z_0 \text{ から逸脱した場合（制約を破る）} 
+    \end{cases}
+\end{equation} \ie $C(z_t, z_0) \ge 0$}
+\paragraph{ラグランジュ関数の構築}
+目的関数に制約関数 $C$ とラグランジュ乗数 $\lambda$ を掛けた項を追加し、新しい関数 $\mathcal{L}$ を定義する。
+\begin{equation}
+    \mathcal{L}(z_t, \lambda) = \mathcal{L}_{\text{diff}}(z_t) + \lambda \cdot C(z_t, z_0) \label{eq:lagrange}
+\end{equation}
+ここで $\lambda$ は、制約を破ろうとする力に対して復元力を提供する役割を持つ。
+
+\paragraph{「復元力」の物理的解釈と勾配}
+式(\ref{eq:lagrange})が最適解（極小値）をとるための必要条件は、$z_t$ による勾配がゼロになることである。
+\begin{equation}
+    \nabla_{z_t} \mathcal{L} = \nabla_{z_t} \mathcal{L}_{\text{diff}}(z_t) + \lambda \nabla_{z_t} C(z_t, z_0) = 0
+\end{equation}
+これを移項すると、力の釣り合いを示す方程式が得られる。
+\begin{equation}
+    -\nabla_{z_t} \mathcal{L}_{\text{diff}}(z_t) = \lambda \nabla_{z_t} C(z_t, z_0)
+\end{equation}
+\begin{itemize}
+    \item \textbf{左辺} ($-\nabla \mathcal{L}_{\text{diff}}$): 生成モデルが $z_t$ を動かそうとする力（動画の進行方向）。
+    \item \textbf{右辺} ($\lambda \nabla C$): 多様体に対する法線ベクトル（垂直方向の力）。
+\end{itemize}
+生成プロセスが多様体から逸脱しようとすると、ラグランジュ乗数 $\lambda$ が「安全ロープの張力」として自動的に働き、多様体の垂直方向へ強制的に引き戻す。これが\textbf{復元力（Restoring Force）}であり、15秒以上の長時間動画の生成においても動画が崩壊しない数学的根拠である。
+
+
+
+\section{Derivation: 次線形誤差成長への抑制}
+
+\begin{thm}[$\sqrt{t}$ 安定性の証明]
+全域注意制約下では、誤差伝播のヤコビ行列 $\mathbf{J}$ の最大固有値が実質的に $1$ に固定され、累積誤差 $\|\epsilon_t\|$ は $t^{1/2}$ のオーダーで成長する。
+\end{thm}
+
+\begin{proof}
+\ \\
+
+\paragraph{制約の効果（接空間への射影）}
+ラグランジュ未定乗数法を用いて制約 $C(z_t, z_0) = 0$ を課すことは、生成される潜在変数 $z_t$ を特定の多様体（Manifold） $\mathcal{M}$ 上に束縛することを意味する。この制約下において、誤差の伝播を支配するヤコビ行列 $\mathbf{J}$ は、制約の復元力によって多様体 $\mathcal{M}$ の接空間（Tangent Space）$\mathcal{T}_{z}\mathcal{M}$ へと誤差ベクトルを射影する実効的な演算子 $\mathbf{J}_{\text{eff}} = \mathcal{P}_{\mathcal{M}} \mathbf{J}$ として機能する。
+
+\paragraph{安定性の変容（固有値の正規化）}
+射影演算子 $\mathcal{P}_{\mathcal{M}}$ の働きにより、多様体に直交する方向（制約を破り、動画が崩壊する方向）への微小な誤差変動はラグランジュ乗数によって即座に減衰させられる（該当する固有値 $\ll 1$）。一方、多様体に接する方向（アイデンティティを保ったまま動画が進行する方向）への変動のみが保存される。これにより、ヤコビ行列の最大の固有値（スペクトル半径）は実質的に $1$ に固定される。すなわち、指数増幅の要因であった $\lambda$ が $0$ に強制され、$\rho(\mathbf{J}_{\text{eff}}) \le \max{(0,1)} = 1$ が成立する。従って、$\rho(\mathbf{J}_{\text{eff}}) \approx 1$ となる。
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[>=stealth, scale=0.9, transform shape]
+
+    % ==========================================
+    % 左図：方向A（直交方向 / 脱軌）
+    % ==========================================
+    \begin{scope}[xshift=0cm]
+        % タイトル
+        \node[align=center] at (0, 3.5) {\large \textbf{方向A：多様体に直交する方向}};
+        \node[align=center, red!80!black] at (0, 2.9) {（制約を破る / 脱軌）};
+
+        % 多様体（曲面）
+        \draw[thick, fill=cyan!10] (-3.5,-1) to[bend left=10] (3.5,-0.5) to[bend right=15] (2.5,-3) to[bend right=10] (-4.5,-2.5) -- cycle;
+        \node[cyan!70!black] at (2, -2.5) {多様体 $\mathcal{M}$ ($C=0$)};
+        
+        % 基準点
+        \filldraw[black] (0,-1.5) circle (2pt) node[below] {$z_{t-1}$};
+        
+        % 直交方向の誤差（上に向かって飛び出す）
+        \draw[->, ultra thick, red] (0,-1.5) -- (0, 1.5) node[above] {誤差 $\epsilon_{\perp}$};
+        
+        % 射影による復元力（下に向かって押しつぶす）
+        \draw[->, dashed, ultra thick, red!60] (0.3, 1.5) -- (0.3, -1.3) node[midway, right, align=left] {射影 $\mathcal{P}_{\mathcal{M}}$ \\ (強制リセット)};
+        
+        % 結論のテキスト
+        \node[draw, fill=white, rounded corners, align=center, red!80!black] at (0, 0) {\textbf{完全に潰される} \\ 増幅率（固有値） $\approx 0$};
+    \end{scope}
+
+    % ==========================================
+    % 右図：方向B（接方向 / 沿軌）
+    % ==========================================
+    \begin{scope}[xshift=9cm]
+        % タイトル
+        \node[align=center] at (0, 3.5) {\large \textbf{方向B：多様体に接する方向}};
+        \node[align=center, blue!80!black] at (0, 2.9) {（制約を満たす / 沿軌）};
+
+        % 多様体（曲面）
+        \draw[thick, fill=cyan!10] (-3.5,-1) to[bend left=10] (3.5,-0.5) to[bend right=15] (2.5,-3) to[bend right=10] (-4.5,-2.5) -- cycle;
+        \node[cyan!70!black] at (2, -2.5) {多様体 $\mathcal{M}$ ($C=0$)};
+        
+        % 接空間（平面）- 多様体にピタッとくっついた下敷き
+        \draw[dashed, fill=green!10, opacity=0.8] (-2.5,-2) -- (2.5,-1.5) -- (3.5,0.5) -- (-1.5,0) -- cycle;
+        \node[green!50!black] at (-1.5, 0.3) {接空間 $\mathcal{T}_z\mathcal{M}$};
+        
+        % 基準点
+        \filldraw[black] (0,-1.5) circle (2pt) node[below] {$z_{t-1}$};
+        
+        % 接方向の誤差（平面上を這う）
+        \draw[->, ultra thick, blue] (0,-1.5) -- (2.5, -0.2) node[above left] {誤差 $\epsilon_{\parallel}$};
+        
+        % 結論のテキスト（平面上をそのままスライドするだけ）
+        \node[draw, fill=white, rounded corners, align=center, blue!80!black] at (1.5, -1.2) {\textbf{そのまま保存される} \\ 増幅率（固有値） $\approx 1$};
+    \end{scope}
+
+\end{tikzpicture}
+\caption{多様体から逸脱する誤差（方向A）は射影によって消去され、多様体に沿う誤差（方向B）のみが等倍で保存されるため、最大増幅率は1となる。}
+\end{figure}
+
+
+\paragraph{誤差方程式の簡略化}
+以前のセクションで導出した誤差の漸化式 $\epsilon_t \approx \mathbf{J} \epsilon_{t-1} + \xi_t$ に対して、実効ヤコビ行列 $\mathbf{J}_{\text{eff}}$ を適用する。$\rho(\mathbf{J}_{\text{eff}}) \approx 1$ であるため、$\mathbf{J}_{\text{eff}}$ を繰り返し掛けることによる指数関数的な拡大（$\mu^t = 1^t = 1$）が消失する。その結果、誤差の更新式は過去の誤差を増幅することなく、単なる加算の形へと簡略化される。
+\begin{equation}
+    \epsilon_t \approx \epsilon_{t-1} + \xi_t
+\end{equation}
+
+\paragraph{ランダムウォークの形成}
+初期誤差を $\epsilon_0 = 0$ と仮定し、簡略化された上記の漸化式を時刻 $t=0$ から再帰的に展開すると、時刻 $t$ における累積誤差は、各ステップで生じた不可避なノイズ $\xi_i$ の単純な総和として表される。
+\begin{equation}
+    \epsilon_t \approx \sum_{i=1}^t \xi_i
+\end{equation}
+これは、誤差が特定の方向へ指数的に発散するのではなく、離散時間のブラウン運動（ランダムウォーク）に従って空間内を漂うことを意味している。
+
+\paragraph{分散の加法性}
+各ステップの生成ノイズ $\xi_i$ は互いに独立同分布（i.i.d.）であり、平均ベクトル$\mathbb{E}[\xi_i]$が $\mathbf{0}$、分散共分散行列が $\text{Var}(\xi_i) = \sigma^2 \mathbf{I}$ であると仮定する。確率論における独立な確率変数の和の性質より、累積誤差の分散は各ノイズの分散の和に等しくなる。
+\begin{equation}
+    \text{Var}(\epsilon_t) = \text{Var}\left( \sum_{i=1}^t \xi_i \right) = \sum_{i=1}^t \text{Var}(\xi_i) = \sum_{i=1}^t \sigma^2 \mathbf{I} = t\sigma^2 \mathbf{I}
+\end{equation}
+つまり、累積誤差の「広がり具合（分散）」は、時間 $t$ に対して指数関数的ではなく、線形にしか増大しない。
+
+\paragraph{次線形性の導出}
+動画生成における実際の誤差の大きさ（振幅）は、分散そのものではなく、二乗平均平方根（RMS: Root Mean Square）として評価される。潜在空間の次元数を $d$ とすると、誤差ノルムの期待値は分散共分散行列のトレース（対角成分の和）の平方根で近似できる。
+$$
+  \|\epsilon_t\|^2 = \epsilon_t^T\epsilon_t = \text{Tr}(\epsilon_t\epsilon_t^T) = \text{Tr}(\epsilon_t^T\epsilon_t)
+$$
+よって、
+$$
+  \mathbb{E}[\|\epsilon_t\|^2] = \mathbb{E}[\text{Tr}(\epsilon_t^T\epsilon_t)] = \text{Tr}(\mathbb{E}[\epsilon_t\epsilon_t^T]) = \text{Tr}(\text{Var}(\epsilon_t)) 
+$$
+したがって、
+$$
+  \underbrace{\mathbb{E}[\|\epsilon_t\|]\approx\sqrt{\mathbb{E}[\|\epsilon_t\|^2]}}_{\texttt{Jensen's ineq:}\mathbb{E}[\sqrt{X}]\le \sqrt{\mathbb{E}[X]}} = \sqrt{\text{Tr}(\text{Var}(\epsilon_t))} = \sqrt{\text{Tr}(t\sigma^2 \mathbf{I})} = \sqrt{d \cdot t\sigma^2} = \sqrt{d}\sigma \sqrt{t}
+$$
+ここで $\sqrt{d}\sigma$ は定数であるため、結果として $\|\epsilon_t\| \propto \sqrt{t} = t^{1/2}$ となる。
+\end{proof}
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.8, >=stealth]
+
+    % =======================================================
+    % 図(a): Step 1 & 2 多様体への射影と固有値の正規化
+    % =======================================================
+    \node at (2, 4.5) {\large \textbf{(a) 多様体への射影}};
+
+    % 多様体 M (曲面)
+    \draw[thick, fill=cyan!10, out=15, in=165] (-2, 0) to (6, 0.5) to[out=270, in=45] (5, -3) to[out=165, in=345] (-3, -2.5) -- cycle;
+    \node[cyan!70!black] at (4.5, -2) {\Large $\mathcal{M}$ (制約多様体)};
+    \node[cyan!70!black, text width=3cm, align=center] at (4.5, -2.8) {\small $C(z_t, z_0) = 0$ を\\満たす安全地帯};
+
+    % 接空間 T_z M (平面)
+    \draw[dashed, fill=green!10, opacity=0.8] (-1.5, -1) -- (4.5, -0.5) -- (5.5, 2.5) -- (-0.5, 2) -- cycle;
+    \node[green!50!black] at (-0.2, 1.5) {\large $\mathcal{T}_{z}\mathcal{M}$};
+    \node[green!50!black] at (-0.2, 1.1) {\small (接空間)};
+
+    % 基準点 z_{t-1}
+    \filldraw[black] (1, 0.5) circle (2pt) node[below right] {$z_{t-1}$};
+
+    % 従来のヤコビ行列による誤差 (赤矢印：多様体から飛び出す)
+    \draw[->, very thick, red] (1, 0.5) -- (2.5, 3.5) node[above] {$\mathbf{J}\epsilon_{t-1}$ (指数発散方向)};
+
+    % 射影後の実効ヤコビ行列による誤差 (青矢印：接空間に這う)
+    \draw[->, very thick, blue] (1, 0.5) -- (3.5, 1.5) node[right] {$\mathbf{J}_{\text{eff}}\epsilon_{t-1}$};
+    
+    % ノイズベクトルの追加
+    \draw[->, thick, orange] (3.5, 1.5) -- (4.2, 1.8) node[right] {$+\xi_t$};
+
+    % 射影を示す点線と復元力
+    \draw[dotted, thick, red] (2.5, 3.5) -- (3.5, 1.5) node[midway, right=2pt, align=left] {復元力 \\ (射影 $\mathcal{P}_{\mathcal{M}}$)};
+
+    % =======================================================
+    % 図(b): Step 3 ~ 6 ランダムウォークと次線形性
+    % =======================================================
+    \begin{scope}[shift={(7, -1)}]
+        \node at (2.5, 5.5) {\large \textbf{(b) 誤差成長の比較}};
+
+        % グラフの軸
+        \draw[->, thick] (0, 0) -- (6.5, 0) node[right] {時間 $t$};
+        \draw[->, thick] (0, 0) -- (0, 4.5) node[above] {累積誤差 $\|\epsilon_t\|$};
+
+        % 指数関数的成長 (赤色)
+        \draw[thick, red, domain=0:2.5, samples=50] plot (\x, {0.3*exp(1.0*\x)}) node[right] {$\mathcal{O}(e^{\lambda t})$ (従来の自己回帰)};
+
+        % 次線形成長 (平方根) (青色)
+        \draw[thick, blue, domain=0:6, samples=50] plot (\x, {1.4*sqrt(\x)}) node[right] {$\mathcal{O}(\sqrt{t})$ (多様体制約下)};
+
+        % ランダムウォークの軌跡イメージ (グレー)
+        \draw[gray, thin, decorate, decoration={random steps,segment length=4pt,amplitude=2.5pt}] 
+            (0,0) -- (1, 1.4) -- (2, 1.98) -- (3, 2.42) -- (4, 2.8) -- (5, 3.13) -- (6, 3.43) node[below] {\small Random walk};
+        
+        % 数式の注釈
+        \node[blue] at (4, 1.5) {$\text{Var}(\epsilon_t) = t\sigma^2 \mathbf{I}$};
+        \node[blue] at (4, 1.0) {$\|\epsilon_t\|_{\text{RMS}} \propto \sqrt{t}$};
+    \end{scope}
+
+\end{tikzpicture}
+\caption{多様体制約による実効ヤコビ行列の射影と、累積誤差の次線形（$\sqrt{t}$）成長への移行メカニズム。}
+\end{figure}
+
+
+\appendix
+\section{スペクトル半径とそのべき反復法}\label{proof:ex1}
+
+\begin{reidai}{$\|\mathbf{J}^n\|\approx \rho(\mathbf{J})^n$の証明}{Spectral Theory}
+$\|\mathbf{J}^n\|\approx \rho(\mathbf{J})^n$を証明せよ。ここで、$\mathbf{J}$ は $d \times d$ の行列である。$\lambda_i$ は $\mathbf{J}$ の固有値であり、$\rho(\mathbf{J}) = \displaystyle\max_{i\in \mathbb{N}} |\lambda_i|$ はスペクトル半径である。
+  
+\end{reidai}
+
+\begin{proof}
+  \ \\
+  $\mathbf{J}$ は $d \times d$ の行列であるため、固有ベクトルの集合 $\{\mathbf{v}_1, \mathbf{v}_2, \cdots, \mathbf{v}_d\}$ を持つ。その対応する固有値は $\{\lambda_1, \lambda_2, \cdots, \lambda_d\}$ である。任意のベクトル $\mathbf{x} \in \mathbb{R}^d$ は、これらの固有ベクトルの線形結合として表すことができる。\\
+\begin{equation}
+    \mathbf{x} = c_1 \mathbf{v}_1 + c_2 \mathbf{v}_2 + \cdots + c_d \mathbf{v}_d
+\end{equation}
+ここで、$c_i$ はスカラー係数である。$\mathbf{J}^n$ を $\mathbf{x}$ に作用させると、以下のようになる。
+\begin{align}
+    \mathbf{J}^n \mathbf{x} &= \mathbf{J}^n (c_1 \mathbf{v}_1 + c_2 \mathbf{v}_ 2 + \cdots + c_d \mathbf{v}_d) \notag \\
+    &= c_1 \mathbf{J}^n \mathbf{v}_1 + c_2 \mathbf{J}^n \mathbf{v}_2 + \cdots + c_d \mathbf{J}^n \mathbf{v}_d \notag \\
+    &= c_1 \lambda_1^n \mathbf{v}_1 + c_2 \lambda_2^n \mathbf{v}_2 + \cdots + c_d \lambda_d^n \mathbf{v}_d \ \ \text{(固有値の定義$\mathbf{Jv} = \lambda \mathbf{v}$)}
+\end{align}
+この式から、
+$$
+  \mathbf{J}^n\mathbf{x} = \lambda_{m}^n \left[ c_1 \left(\frac{\lambda_1}{\lambda_{m}}\right)^n \mathbf{v}_1 + c_2 \left(\frac{\lambda_2}{\lambda_{m}}\right)^n \mathbf{v}_2 + c_m \mathbf{v}_m + \cdots + c_d \left(\frac{\lambda_d}{\lambda_{m}}\right)^n \mathbf{v}_d \right]
+$$
+となる。ここで、$\lambda_{m}$ は $\mathbf{J}$ の固有値の中で最大の絶対値を持つものである。\ie$\lambda_{m} = \rho(\mathbf{J})$ である。\\
+したがって、$\forall i>1かつi\neq m$に対し、$\left|\dfrac{\lambda_i}{\lambda_m}\right| < 1$ であるため、$\left(\dfrac{\lambda_i}{\lambda_m}\right)^n \to 0$ ($n \to \infty$) となる。\\
+次に、ノルムを取ると、
+\begin{align}
+    \|\mathbf{J}^n \mathbf{x}\| &= \left\|\lambda_{m}^n \left[ c_1 \left(\frac{\lambda_1}{\lambda_{m}}\right)^n \mathbf{v}_1 + c_2 \left(\frac{\lambda_2}{\lambda_{m}}\right)^n \mathbf{v}_2 + c_m \mathbf{v}_m + \cdots + c_d \left(\frac{\lambda_d}{\lambda_{m}}\right)^n \mathbf{v}_d \right]\right\| \notag \\
+    &= |\lambda_{m}|^n \left\| c_1 \left(\frac{\lambda_1}{\lambda_{m}}\right)^n \mathbf{v}_1 + c_2 \left(\frac{\lambda_2}{\lambda_{m}}\right)^n \mathbf{v}_2 + c_m \mathbf{v}_m + \cdots + c_d \left(\frac{\lambda_d}{\lambda_{m}}\right)^n \mathbf{v}_d \right\| \notag \\
+    &\approx |\lambda_{m}|^n \|c_m \mathbf{v}_m\| 
+\end{align}
+
+
+よって、十分大きな$n$に対して $\displaystyle\sup_{\|x\| = 1} \|\mathbf{J}^n \mathbf{x}\| = \|\mathbf{J}^n\| \approx |\lambda_m|^n =\rho(\mathbf{J})^n$ が示された。
+\end{proof}
+
+\end{document}
