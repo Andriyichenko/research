@@ -251,11 +251,11 @@ $C(z_t, z_0)$ を特徴の差異を計算する非負の誤差関数(distance/pe
     \begin{scope}[xshift=0cm]
         % タイトル
         \node[align=center] at (0, 3.5) {\large \textbf{方向A：多様体に直交する方向}};
-        \node[align=center, red!80!black] at (0, 2.9) {（制約を破る / 脱軌）};
+        \node[align=center, text=red!80!black] at (0, 2.9) {（制約を破る / 脱軌）};
 
         % 多様体（曲面）
         \draw[thick, fill=cyan!10] (-3.5,-1) to[bend left=10] (3.5,-0.5) to[bend right=15] (2.5,-3) to[bend right=10] (-4.5,-2.5) -- cycle;
-        \node[cyan!70!black] at (2, -2.5) {多様体 $\mathcal{M}$ ($C=0$)};
+        \node[text=cyan!70!black] at (2, -2.5) {多様体 $\mathcal{M}$ ($C=0$)};
         
         % 基準点
         \filldraw[black] (0,-1.5) circle (2pt) node[below] {$z_{t-1}$};
@@ -266,8 +266,8 @@ $C(z_t, z_0)$ を特徴の差異を計算する非負の誤差関数(distance/pe
         % 射影による復元力（下に向かって押しつぶす）
         \draw[->, dashed, ultra thick, red!60] (0.3, 1.5) -- (0.3, -1.3) node[midway, right, align=left] {射影 $\mathcal{P}_{\mathcal{M}}$ \\ (強制リセット)};
         
-        % 結論のテキスト
-        \node[draw, fill=white, rounded corners, align=center, red!80!black] at (0, 0) {\textbf{完全に潰される} \\ 増幅率（固有値） $\approx 0$};
+        % 結論のテキスト（修正：塗りつぶしと枠線を削除し、テキストカラーのみを指定）
+        \node[align=center, text=red!80!black] at (0, 0) {\textbf{完全に潰される} \\ 増幅率（固有値） $\approx 0$};
     \end{scope}
 
     % ==========================================
@@ -276,15 +276,15 @@ $C(z_t, z_0)$ を特徴の差異を計算する非負の誤差関数(distance/pe
     \begin{scope}[xshift=9cm]
         % タイトル
         \node[align=center] at (0, 3.5) {\large \textbf{方向B：多様体に接する方向}};
-        \node[align=center, blue!80!black] at (0, 2.9) {（制約を満たす / 沿軌）};
+        \node[align=center, text=blue!80!black] at (0, 2.9) {（制約を満たす / 沿軌）};
 
         % 多様体（曲面）
         \draw[thick, fill=cyan!10] (-3.5,-1) to[bend left=10] (3.5,-0.5) to[bend right=15] (2.5,-3) to[bend right=10] (-4.5,-2.5) -- cycle;
-        \node[cyan!70!black] at (2, -2.5) {多様体 $\mathcal{M}$ ($C=0$)};
+        \node[text=cyan!70!black] at (2, -2.5) {多様体 $\mathcal{M}$ ($C=0$)};
         
         % 接空間（平面）- 多様体にピタッとくっついた下敷き
         \draw[dashed, fill=green!10, opacity=0.8] (-2.5,-2) -- (2.5,-1.5) -- (3.5,0.5) -- (-1.5,0) -- cycle;
-        \node[green!50!black] at (-1.5, 0.3) {接空間 $\mathcal{T}_z\mathcal{M}$};
+        \node[text=green!50!black] at (-1.5, 0.3) {接空間 $\mathcal{T}_z\mathcal{M}$};
         
         % 基準点
         \filldraw[black] (0,-1.5) circle (2pt) node[below] {$z_{t-1}$};
@@ -292,12 +292,12 @@ $C(z_t, z_0)$ を特徴の差異を計算する非負の誤差関数(distance/pe
         % 接方向の誤差（平面上を這う）
         \draw[->, ultra thick, blue] (0,-1.5) -- (2.5, -0.2) node[above left] {誤差 $\epsilon_{\parallel}$};
         
-        % 結論のテキスト（平面上をそのままスライドするだけ）
-        \node[draw, fill=white, rounded corners, align=center, blue!80!black] at (1.5, -1.2) {\textbf{そのまま保存される} \\ 増幅率（固有値） $\approx 1$};
+        % 結論のテキスト（修正：塗りつぶしと枠線を削除し、テキストカラーのみを指定）
+        \node[align=center, text=blue!80!black] at (1.5, -1.2) {\textbf{そのまま保存される} \\ 増幅率（固有値） $\approx 1$};
     \end{scope}
 
 \end{tikzpicture}
-\caption{多様体から逸脱する誤差（方向A）は射影によって消去され、多様体に沿う誤差（方向B）のみが等倍で保存されるため、最大増幅率は1となる。}
+\caption{ヤコビ行列の最大固有値（$\rho$）が1に固定される幾何学的メカニズム。多様体から逸脱する誤差（方向A）は射影によって消去され、多様体に沿う誤差（方向B）のみが等倍で保存されるため、最大増幅率は1となる。}
 \end{figure}
 
 
