@@ -37,6 +37,7 @@ GitHub上でレンダリングされたPDFへ直接アクセスできるクィ�
 | **ML 4.2.4** | 直線探索法 (Line Search Method) | [ML4.2.4.pdf](https://github.com/Andriyichenko/research/blob/main/semi/ML4.2.4/out/ML4.2.4.pdf) |
 | **ML 4.3** |  物理の運動学からの解釈(Kinematic Interpretation) | [ML4.3.pdf](https://github.com/Andriyichenko/research/blob/main/semi/ML4.3/out/ML4.3.pdf) |
 | **ML 4.4** |  モーメンタム法(Momentum Method) | [ML4.4.pdf](https://github.com/Andriyichenko/research/blob/main/semi/ML4.4/out/ml4.4_momentum_method.pdf) |
+| **Application: Seedance 2.0** |  AIモデルの応用:Seedance 2.0 | [Application.pdf](https://github.com/Andriyichenko/research/blob/main/semi/ML4.4/out/ml4.4_momentum_method.pdf) |
 | **Proofs** | 畳み込みの証明 (Convolution) | [pf_convolution.pdf](https://github.com/Andriyichenko/research/blob/main/semi/out/pf_convolution.pdf) |
 | | 推定の証明 (Estimation) | [pf_estimation.pdf](https://github.com/Andriyichenko/research/blob/main/semi/out/pf_estimation.pdf) |
 

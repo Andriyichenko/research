@@ -3,6 +3,17 @@
 \usetikzlibrary{decorations.pathmorphing}
 \begin{document}
 \maketitle
+\vspace{-0.4cm}
+\begin{figure}[H] 
+  \centering
+  \begin{tikzpicture}[remember picture, overlay]
+      \node[anchor=north east] at (current page.north east) {
+          \includegraphics[width=2cm]{pics/application.png} 
+      };
+      \node[anchor=north east, yshift=-2cm] at (current page.north east) {PDF版はここ$\uparrow$};
+  \end{tikzpicture}
+  \label{fig:my_label}
+\end{figure}
 
 
 \section{Introduction: 長時間動画の生成における「崩壊」問題}
