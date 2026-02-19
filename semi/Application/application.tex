@@ -21,7 +21,7 @@
 動画生成モデルにおいて、15秒を超えるような長時間生成は極めて困難な課題である。従来のモデルでは時間ステップが進むにつれて、物体の形状崩壊と呼ばれるアイデンティティの消失が頻発する。本レジュメでは、Seedance 2.0が導入した\textbf{全域注意制約（Global Attention Constraint）}がいかにして誤差の指数関数的増大を抑制し、長期間の一致性を数学的に保証しているかを力学系の観点から解説する。
 
 \begin{dfn}[自己回帰的生成の不安定性]
-動画の予測変数 $\hat{z_t}$ が直前のフレーム $\hat{  }$ のみに依存して生成される場合、各ステップで生じる微小な推論誤差が時間とともに累積し、非線形な系において指数関数的に増幅される現象を指す。
+動画の予測変数 $\hat{z_t}$ が直前のフレーム $\hat{z}_{t-1}$ のみに依存して生成される場合、各ステップで生じる微小な推論誤差が時間とともに累積し、非線形な系において指数関数的に増幅される現象を指す。
 \end{dfn}
 
 \section{Mathematical Modeling: 誤差伝播の解析}
@@ -418,7 +418,7 @@ $\|\mathbf{J}^n\|\approx \rho(\mathbf{J})^n$を証明せよ。ここで、$\math
 \begin{align}
     \mathbf{J}^n \mathbf{x} &= \mathbf{J}^n (c_1 \mathbf{v}_1 + c_2 \mathbf{v}_ 2 + \cdots + c_d \mathbf{v}_d) \notag \\
     &= c_1 \mathbf{J}^n \mathbf{v}_1 + c_2 \mathbf{J}^n \mathbf{v}_2 + \cdots + c_d \mathbf{J}^n \mathbf{v}_d \notag \\
-    &= c_1 \lambda_1^n \mathbf{v}_1 + c_2 \lambda_2^n \mathbf{v}_2 + \cdots + c_d \lambda_d^n \mathbf{v}_d \ \ \text{(固有値の定義$\mathbf{Jv} = \lambda \mathbf{v}$)}
+    &= c_1 \lambda_1^n \mathbf{v}_1 + c_2 \lambda_2^n \mathbf{v}_2 + \cdots + c_d \lambda_d^n \mathbf{v}_d \ \ \text{(固有値の定義:$\mathbf{Jv} = \lambda \mathbf{v}$)}
 \end{align}
 この式から、
 $$
@@ -434,7 +434,7 @@ $$
 \end{align}
 
 
-よって、十分大きな$n$に対して $\displaystyle\sup_{\|x\| = 1} \|\mathbf{J}^n \mathbf{x}\| = \|\mathbf{J}^n\| \approx |\lambda_m|^n =\rho(\mathbf{J})^n$ が示された。
+よって、十分大きな$n$に対して $\displaystyle\sup_{\|\mathbf{x}\| = 1} \|\mathbf{J}^n \mathbf{x}\| = \|\mathbf{J}^n\| \approx |\lambda_m|^n =\rho(\mathbf{J})^n$ が示された。
 \end{proof}
 
 \end{document}
