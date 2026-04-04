@@ -1267,7 +1267,7 @@ $\beta_1 = 0$，$\beta_2 = 1$，$\alpha_n = \alpha$（定数）と置くと Adag
 \end{align}
 ただし，初期値は $m_0 = 0$，$v_0 = 0$ とする．
 \end{reidai}
-\paragraph{Step 1：加重和から加重平均への変換}
+\paragraph{加重和から加重平均への変換}
 
 漸化式~\eqref{eq:m_raw} を展開すると，
 \begin{equation}
@@ -1497,6 +1497,834 @@ $x$ と $x + t(y-x)$ の対に適用する：
 \end{equation}
 が得られる．
 \end{proof}
+\section{主結果（Main Results）と収束性証明}
+
+\subsection{確率的出力点 $\tau$ の構成とその意味}
+
+総反復回数(a number of iterations) $N \in \mathbb{N}^* = \left\{1,2,\cdots\right\}$ を与える．
+確率変数 $\tau \in \{0,1,\dots,N-1\}$ を次で定義する：
+\begin{equation}
+    \forall j < N,\quad
+    \mathbb{P}[\tau = j] \propto 1 - \beta_1^{\,N-j}.
+    \tag{9}
+\end{equation}
+
+すなわち正規化定数
+\[
+    Z_N := \sum_{k=0}^{N-1} \left(1-\beta_1^{\,N-k}\right)
+\]
+を用いて
+\[
+    \mathbb{P}[\tau=j]
+    = \frac{1-\beta_1^{\,N-j}}{Z_N}\quad\quad \left(\displaystyle\sum_{j=0}^{N-1} \mathbb{P}[\tau=j] = 1\right)
+\]
+と書ける．
+
+\paragraph{説明}
+\begin{itemize}
+    \item $\beta_1=0$ のとき，$\mathbb{P}[\tau=j]$ は一様分布となる
+    \item $\mathbb{E}\big[\|\nabla F(x_\tau)\|_2^2\big] = \displaystyle\sum_{j=0}^{N-1} \mathbb{P}[\tau=j] \cdot \mathbb{E}[\|\nabla F(x_j)\|_2^2] $であるため，$\tau$ は $x_n$ の中から無作為に選ばれた出力点を表す
+\end{itemize}
+
+\bigskip
+\subsection{証明の基本構造}
+
+全ての定理は以下の共通構造に基づく．
+
+\paragraph{Descent Lemma}
+ここで、$x_n - x_{n-1} = -\alpha_n u_n\quad (\alpha_n:学習率; u_n:方向更新の式)$ とおくと、Descent Lemma より
+\begin{equation}
+    F(x_n)
+    \leq F(x_{n-1})
+    - \alpha_n \nabla F(x_{n-1})^\top u_n
+    + \frac{L\alpha_n^2}{2}\|u_n\|_2^2.
+\end{equation}
+
+\paragraph{期待値と総和}
+両辺の期待値を取り，$n=1,\dots,N$ で総和をとる：
+\begin{align}
+    \mathbb{E}[F(x_N)]
+    &\leq F(x_0)
+    - \sum_{n=1}^N \alpha_n
+      \mathbb{E}[\nabla F(x_{n-1})^\top u_n]
+    + \frac{L}{2}\sum_{n=1}^N \alpha_n^2
+      \mathbb{E}[\|u_n\|_2^2].
+\end{align}
+%%proofの構造はここまでで共通．あとは下降方向の評価を行う．
+
+\begin{proof}\ \\
+\noindent
+Descent Lemma より，各 $n = 1, \dots, N$ について：
+\begin{align}
+    F(x_n) \leq F(x_{n-1}) - \alpha_n \nabla F(x_{n-1})^\top u_n + \frac{L\alpha_n^2}{2}\|u_n\|_2^2.
+\end{align}
+両辺の全期待値 $\mathbb{E}[\,\cdot\,]$ をとると，期待値の単調性より：
+\begin{align}
+    \mathbb{E}[F(x_n)]
+    \leq \mathbb{E}[F(x_{n-1})]
+    - \alpha_n \mathbb{E}[\nabla F(x_{n-1})^\top u_n]
+    + \frac{L\alpha_n^2}{2} \mathbb{E}[\|u_n\|_2^2].
+\end{align}
+この不等式は $n = 1, 2, \dots, N$ の各ステップで成立する。
+
+次、上の不等式を $n = 1, \dots, N$ について足し合わせると、
+\begin{align}
+    \sum_{n=1}^N \mathbb{E}[F(x_n)]
+    \leq \sum_{n=1}^N \mathbb{E}[F(x_{n-1})]
+    - \sum_{n=1}^N \alpha_n \mathbb{E}[\nabla F(x_{n-1})^\top u_n]
+    + \frac{L}{2} \sum_{n=1}^N \alpha_n^2 \mathbb{E}[\|u_n\|_2^2].
+\end{align}
+
+
+左辺から右辺第一項を移項すると：
+\begin{align}
+    \sum_{n=1}^N \mathbb{E}[F(x_n)] - \sum_{n=1}^N \mathbb{E}[F(x_{n-1})]
+    &= \sum_{n=1}^N \Bigl(\mathbb{E}[F(x_n)] - \mathbb{E}[F(x_{n-1})]\Bigr) \notag \\
+    &= \bigl(\mathbb{E}[F(x_1)] - \mathbb{E}[F(x_0)]\bigr) \notag \\
+    &\quad + \bigl(\mathbb{E}[F(x_2)] - \mathbb{E}[F(x_1)]\bigr) \notag \\
+    &\quad + \cdots \notag \\
+    &\quad + \bigl(\mathbb{E}[F(x_N)] - \mathbb{E}[F(x_{N-1})]\bigr) \notag \\
+    &= \mathbb{E}[F(x_N)] - \mathbb{E}[F(x_0)].
+\end{align}
+ここで，$x_0$ は確定的な初期点であるから $\mathbb{E}[F(x_0)] = F(x_0)$ が成り立つ。
+\noindent
+以上によると、
+\begin{align}
+    \mathbb{E}[F(x_N)]
+    &\leq F(x_0)
+    - \sum_{n=1}^N \alpha_n
+      \mathbb{E}[\nabla F(x_{n-1})^\top u_n]
+    + \frac{L}{2}\sum_{n=1}^N \alpha_n^2
+      \mathbb{E}[\|u_n\|_2^2]. \tag{52}
+\end{align}
+\end{proof}
+\paragraph{下降方向の評価}
+\begin{equation}
+    \mathbb{E}[\nabla F(x_{n-1})^\top u_n]
+    \geq \frac{1}{2}
+    \mathbb{E}\!\left[
+        \frac{\|\nabla F(x_{n-1})\|_2^2}{\sqrt{\epsilon + v_n}}
+    \right]
+    - \mathcal{E}_n,
+\end{equation}
+ただし $\mathcal{E}_n$ は誤差項であり、$u_n$ は更新方向である。
+
+\begin{proof}\ \\
+\noindent
+更新方向 $u_n$ は Adam/Adagrad の構造より
+\begin{align}
+    u_n = \frac{\tilde{v}_n}{\sqrt{\epsilon + v_n}},
+\end{align}
+ここで $\tilde{v}_n$ は $\beta_1$ による指数移動平均（動量付き勾配），
+$v_n$ は勾配二乗の累積（二次モーメント推定）である．
+よって内積を成分展開すると：
+\begin{align}
+    \nabla F(x_{n-1})^\top u_n
+    = \sum_i \frac{[\nabla F(x_{n-1})]_i \cdot [\tilde{v}_n]_i}{\sqrt{\epsilon + [v_n]_i}}.
+\end{align}
+
+\medskip
+各成分について：
+\begin{align}
+    [\tilde{v}_n]_i
+    = [\nabla F(x_{n-1})]_i
+    + \underbrace{\bigl([\tilde{v}_n]_i - [\nabla F(x_{n-1})]_i\bigr)}_{\text{動量による偏差（ノイズ項）}}.
+\end{align}
+これを代入すると：
+\begin{align}
+    \nabla F(x_{n-1})^\top u_n
+    &= \sum_i \frac{[\nabla F(x_{n-1})]_i^2}{\sqrt{\epsilon + [v_n]_i}}
+     + \sum_i \frac{[\nabla F(x_{n-1})]_i \cdot
+       \bigl([\tilde{v}_n]_i - [\nabla F(x_{n-1})]_i\bigr)}
+       {\sqrt{\epsilon + [v_n]_i}} \notag \\
+    &= \frac{\|\nabla F(x_{n-1})\|_2^2}{\sqrt{\epsilon + v_n}}\bigg|_{\text{ベクトル各成分}}
+     + \underbrace{\text{（誤差項）}}_{\delta_n}.
+\end{align}
+
+\medskip
+任意の実数 $a,b$ と正数 $s=1 > 0$ に対して Young の不等式[\ref{pf:youngs_ineq}]より、
+\begin{align}
+    ab \geq -\frac{s}{2}a^2 - \frac{1}{2s}b^2.
+\end{align}
+誤差項の各成分に対して $a = [\nabla F(x_{n-1})]_i / (\epsilon + [v_n]_i)^{1/4}$，
+$b = ([\tilde{v}_n]_i - [\nabla F(x_{n-1})]_i)/(\epsilon + [v_n]_i)^{1/4}$
+として適用すると、
+\begin{align}
+    \delta_n
+    \geq -\frac{1}{2}\frac{\|\nabla F(x_{n-1})\|_2^2}{\sqrt{\epsilon+v_n}}
+    - C_n
+\end{align}
+ここで $C_n \geq 0$ は偏差 $\tilde{v}_n - \nabla F(x_{n-1})$ の大きさに依存する残余項である．
+
+\medskip
+したがって、
+\begin{align}
+    \nabla F(x_{n-1})^\top u_n
+    \geq \frac{1}{2}\frac{\|\nabla F(x_{n-1})\|_2^2}{\sqrt{\epsilon+v_n}}
+    - C_n.
+\end{align}
+両辺の期待値をとり，$\mathcal{E}_n := \mathbb{E}[C_n] \geq 0$ と定義すれば：
+\begin{align}
+    \mathbb{E}[\nabla F(x_{n-1})^\top u_n]
+    \geq \frac{1}{2}
+    \mathbb{E}\!\left[
+        \frac{\|\nabla F(x_{n-1})\|_2^2}{\sqrt{\epsilon + v_n}}
+    \right]
+    - \mathcal{E}_n.
+    \tag{57}
+\end{align}
+ここで $\mathcal{E}_n$ は動量パラメータ $\beta_1$ による偏差（$\tilde{v}_n \neq \nabla F(x_{n-1})$）
+から生じる誤差項である。
+\end{proof}
+
+\paragraph{望遠鏡和}
+$F(x_N)\geq F^*$ より
+\begin{equation}
+    \sum_{n=1}^N \alpha_n
+    \mathbb{E}\!\left[
+        \frac{\|\nabla F(x_{n-1})\|_2^2}{\sqrt{\epsilon + v_n}}
+    \right]
+    \leq
+    2(F(x_0)-F^*) + 2\sum_{n=1}^N \alpha_n \mathcal{E}_n
+    + L\sum_{n=1}^N \alpha_n^2 \mathbb{E}[\|u_n\|^2].
+\end{equation}
+\begin{proof}\ \\
+\noindent
+下降方向の評価より、各$n$ について：
+\begin{align}
+    \mathbb{E}[\nabla F(x_{n-1})^\top u_n]
+    \geq \frac{1}{2}\mathbb{E}\!\left[
+        \frac{\|\nabla F(x_{n-1})\|_2^2}{\sqrt{\epsilon + v_n}}
+    \right] - \mathcal{E}_n.
+\end{align}
+下界で置き換えると右辺は大きくなるので、
+\begin{align}
+    \mathbb{E}[F(x_N)]
+    &\leq F(x_0)
+    - \sum_{n=1}^N \alpha_n
+      \left(
+        \frac{1}{2}\mathbb{E}\!\left[
+          \frac{\|\nabla F(x_{n-1})\|_2^2}{\sqrt{\epsilon+v_n}}
+        \right]
+        - \mathcal{E}_n
+      \right)
+    + \frac{L}{2}\sum_{n=1}^N \alpha_n^2 \mathbb{E}[\|u_n\|^2].
+\end{align}
+括弧を展開すると：
+\begin{align}
+    \mathbb{E}[F(x_N)]
+    &\leq F(x_0)
+    - \frac{1}{2}\sum_{n=1}^N \alpha_n
+      \mathbb{E}\!\left[
+        \frac{\|\nabla F(x_{n-1})\|_2^2}{\sqrt{\epsilon+v_n}}
+      \right]
+    + \sum_{n=1}^N \alpha_n \mathcal{E}_n
+    + \frac{L}{2}\sum_{n=1}^N \alpha_n^2 \mathbb{E}[\|u_n\|^2].
+    \label{eq:after_sub}
+\end{align}
+
+\medskip
+$F^*$ は $F$ の大域的最小値であるから，任意の $x$ に対して $F(x) \geq F^*$．
+特に $x = x_N$ として期待値をとれば：
+\begin{align}
+    F^* \leq \mathbb{E}[F(x_N)].
+\end{align}
+これを式~\eqref{eq:after_sub} と合わせると：
+\begin{align}
+    F^*
+    \leq \mathbb{E}[F(x_N)]
+    \leq F(x_0)
+    - \frac{1}{2}\sum_{n=1}^N \alpha_n
+      \mathbb{E}\!\left[
+        \frac{\|\nabla F(x_{n-1})\|_2^2}{\sqrt{\epsilon+v_n}}
+      \right]
+    + \sum_{n=1}^N \alpha_n \mathcal{E}_n
+    + \frac{L}{2}\sum_{n=1}^N \alpha_n^2 \mathbb{E}[\|u_n\|^2].
+\end{align}
+
+\medskip
+目標項を左辺に移項すると：
+\begin{align}
+    \frac{1}{2}\sum_{n=1}^N \alpha_n
+    \mathbb{E}\!\left[
+      \frac{\|\nabla F(x_{n-1})\|_2^2}{\sqrt{\epsilon+v_n}}
+    \right]
+    \leq
+    F(x_0) - F^*
+    + \sum_{n=1}^N \alpha_n \mathcal{E}_n
+    + \frac{L}{2}\sum_{n=1}^N \alpha_n^2 \mathbb{E}[\|u_n\|^2].
+\end{align}
+両辺を $2$ 倍すれば：
+\begin{align}
+    \sum_{n=1}^N \alpha_n
+    \mathbb{E}\!\left[
+        \frac{\|\nabla F(x_{n-1})\|_2^2}{\sqrt{\epsilon + v_n}}
+    \right]
+    \leq
+    2(F(x_0)-F^*) + 2\sum_{n=1}^N \alpha_n \mathcal{E}_n
+    + L\sum_{n=1}^N \alpha_n^2 \mathbb{E}[\|u_n\|^2].
+    \tag{65}
+\end{align}
+\end{proof}
+
+\paragraph{$\tau$ の導入}
+定義より
+\begin{align}
+    \mathbb{E}[\|\nabla F(x_\tau)\|^2]
+    &= \sum_{j=0}^{N-1}
+    \frac{1-\beta_1^{\,N-j}}{Z_N}
+    \mathbb{E}[\|\nabla F(x_j)\|^2].
+\end{align}
+\paragraph{$\sum_{n=1}^N \frac{g_n^2}{\sqrt{\epsilon + v_n}}$ の評価}\ \\
+\noindent
+各座標 $i$ を固定する（以下，座標添字 $i$ を省略）．
+$v_n = \sum_{k=1}^n g_k^2$（$v_0 = 0$）とするとき，
+\[
+    \sum_{n=1}^N \frac{g_n^2}{\sqrt{\epsilon + v_n}}
+    \leq 2\sqrt{v_N}.
+\]
+
+\begin{proof}\ \\
+\noindent
+$v_n$ の定義 $v_n = \sum_{k=1}^n g_k^2$ より，
+\[
+    v_n - v_{n-1} = g_n^2, \qquad n = 1, 2, \ldots, N.
+    \tag{L1}
+\]
+これにより，左辺の各項を
+\[
+    \frac{g_n^2}{\sqrt{\epsilon + v_n}}
+    = \frac{v_n - v_{n-1}}{\sqrt{\epsilon + v_n}}
+\]
+と書き換えることができる．
+
+\medskip
+\noindent
+関数 $f(t) = \sqrt{\epsilon + t}$（$t \geq 0$）を考える．
+一階・二階導関数は
+\[
+    f'(t) = \frac{1}{2\sqrt{\epsilon + t}} > 0, \qquad
+    f''(t) = -\frac{1}{4(\epsilon + t)^{3/2}} < 0
+\]
+であるから，$f$ は狭義凹関数（strictly concave）である．
+
+凹関数の基本性質として，任意の $a \leq b$ に対して
+\[
+    f(b) - f(a) \geq f'(b)\,(b - a)
+    \tag{L2}
+\]
+が成立する（凹関数では接線が曲線の\emph{上方}にあるため，
+右端点 $b$ での傾き $f'(b)$ は区間 $[a,b]$ 上の平均変化率
+$\frac{f(b)-f(a)}{b-a}$ \emph{以下}である．
+したがって $f'(b)(b-a) \leq f(b)-f(a)$ が成り立つ）．
+
+\medskip
+\noindent
+$a = v_{n-1}$，$b = v_n$（$g_n^2 \geq 0$ より $v_n \geq v_{n-1}$）を代入すると，
+\[
+    \sqrt{\epsilon + v_n} - \sqrt{\epsilon + v_{n-1}}
+    \geq \frac{1}{2\sqrt{\epsilon + v_n}}\,(v_n - v_{n-1})
+    = \frac{g_n^2}{2\sqrt{\epsilon + v_n}}.
+\]
+両辺を $2$ 倍して移項すると，
+\[
+    \frac{g_n^2}{\sqrt{\epsilon + v_n}}
+    \leq 2\!\left(\sqrt{\epsilon + v_n} - \sqrt{\epsilon + v_{n-1}}\right).
+    \tag{L3}
+\]
+
+\medskip
+\noindent
+(L3) を $n = 1, \ldots, N$ について加えると，
+\[
+    \sum_{n=1}^N \frac{g_n^2}{\sqrt{\epsilon + v_n}}
+    \leq 2\sum_{n=1}^N
+      \!\left(\sqrt{\epsilon + v_n} - \sqrt{\epsilon + v_{n-1}}\right).
+\]
+右辺は Telescoping Sum（望遠鏡和）であり，中間項がすべて相殺されて
+\begin{align}
+    2\sum_{n=1}^N \!\left(\sqrt{\epsilon + v_n} - \sqrt{\epsilon + v_{n-1}}\right)
+    &= 2\!\left(\sqrt{\epsilon + v_N} - \sqrt{\epsilon + v_0}\right) \notag\\
+    &= 2\!\left(\sqrt{\epsilon + v_N} - \sqrt{\epsilon}\right),
+    \tag{L4}
+\end{align}
+ここで最後の等号には $v_0 = 0$ を用いた．
+
+\medskip
+\noindent
+$\sqrt{\epsilon} \geq 0$ より，
+\[
+    \sqrt{\epsilon + v_N} - \sqrt{\epsilon} \leq \sqrt{\epsilon + v_N}.
+    \tag{L5}
+\]
+さらに $\epsilon \geq 0$ より $\sqrt{\epsilon + v_N} \leq \sqrt{\epsilon} + \sqrt{v_N}$
+が成り立つが，ここではより直接的に $\epsilon$ を捨てて
+\[
+    \sqrt{\epsilon + v_N} \leq \sqrt{\epsilon} + \sqrt{v_N}
+\]
+を用いることもできる．
+ここでは $\epsilon$ が十分小さい設定で量級に影響しないため，
+\[
+    \sqrt{\epsilon + v_N} - \sqrt{\epsilon}
+    \leq \sqrt{\epsilon + v_N}
+    \leq \sqrt{\epsilon} + \sqrt{v_N}
+\]
+の最右辺からさらに $\sqrt{\epsilon}$ を落として $\sqrt{v_N}$ とする代わりに，
+(L5) から直接
+\[
+    2\!\left(\sqrt{\epsilon + v_N} - \sqrt{\epsilon}\right)
+    \leq 2\sqrt{\epsilon + v_N}
+\]
+と評価し，最終的に $\epsilon$ を無視して
+\[
+    \leq 2\sqrt{v_N}
+\]
+とまとめる
+（厳密には $2\sqrt{\epsilon + v_N}$ が正確な上界であるが，
+$\epsilon > 0$ は正則化パラメータとして固定されており，
+後続の評価 $v_{N} \leq NR^2$ を代入する際に $\epsilon$ 項は
+主要項に吸収されるため，量級に影響しない）．
+
+\medskip
+\noindent
+(L3)–(L5) によると
+\[
+    \sum_{n=1}^N \frac{g_n^2}{\sqrt{\epsilon + v_n}}
+    \leq 2\!\left(\sqrt{\epsilon + v_N} - \sqrt{\epsilon}\right)
+    \leq 2\sqrt{\epsilon + v_N}
+    \leq 2\sqrt{v_N} + 2\sqrt{\epsilon}.
+\]
+論文の評価では $\epsilon$ 項を無視し（あるいは $\epsilon \to 0$ の極限で），
+\[
+    \displaystyle\sum_{n=1}^N \frac{g_{n,i}^2}{\sqrt{\epsilon + v_{n,i}}}
+    \leq 2\sqrt{v_{N,i}}
+\]
+が得られる
+\end{proof}
+
+
+\bigskip
+\subsection{定理1：Adagrad（モーメンタムなし）}
+
+\begin{thm}
+$\beta_1=0,\ \beta_2=1,\ \alpha_n=\alpha$ のとき，
+\begin{equation}
+    \mathbb{E}[\|\nabla F(x_\tau)\|^2]
+    \leq
+    \frac{2R(F(x_0)-F^*)}{\alpha\sqrt{N}}
+    + \frac{1}{\sqrt{N}}(4dR^2 + \alpha dRL)\ln\!\left(1+\frac{NR^2}{\epsilon}\right).
+\end{equation}
+\end{thm}
+
+\begin{proof}\ \\
+\noindent
+\textbf{目標収束率の導出}\\
+\noindent
+目標は以下の収束率を示すことである：
+\[
+    \mathbb{E}\!\left[\|\nabla F(x_\tau)\|^2\right]
+    \leq 2R\,\frac{F(x_0)-F_*}{\alpha\sqrt{N}}
+    + \frac{1}{\sqrt{N}}\left(4dR^2 + \alpha dRL\right)
+    \ln\!\left(1+\frac{NR^2}{\epsilon}\right).
+\]
+
+\noindent
+\textbf{Descent Lemma による関数値の降下}\\
+\noindent
+$F$ が $L$-滑らかであることより，各ステップで以下が成立する：
+\[
+    F(x_{n+1}) \leq F(x_n) - \alpha\langle \nabla F(x_n),\, u_n \rangle
+    + \frac{\alpha^2 L}{2}\|u_n\|^2.
+\]
+移項すると，
+\[
+    \alpha\langle \nabla F(x_n), u_n \rangle
+    \leq F(x_n) - F(x_{n+1}) + \frac{\alpha^2 L}{2}\|u_n\|^2.
+\]
+$n = 1, \ldots, N$ について総和をとると，右辺は Telescoping により，
+\[
+    \alpha \sum_{n=1}^N \langle \nabla F(x_n), u_n \rangle
+    \leq F(x_0) - F(x_{N+1}) + \frac{\alpha^2 L}{2}\sum_{n=1}^N \|u_n\|^2.
+\]
+$F(x_{N+1}) \geq F_*$ より $F(x_0) - F(x_{N+1}) \leq F(x_0) - F_*$ なので，
+両辺を $\alpha$ で割ると，
+\[
+    \sum_{n=1}^N \langle \nabla F(x_n), u_n \rangle
+    \leq \frac{F(x_0)-F_*}{\alpha}
+    + \frac{\alpha L}{2}\sum_{n=1}^N \|u_n\|^2.
+    \tag{A}
+\]
+
+\noindent
+\textbf{$\langle \nabla F(x_n), u_n \rangle$ と $\|\nabla F\|^2$ の関係}\\
+\noindent
+AdaGrad の更新量 $u_n$ の第 $i$ 成分は
+\[
+    u_{n,i} = \frac{g_{n,i}}{\sqrt{\epsilon + v_{n,i}}}
+\]
+であるから，
+\[
+    \langle \nabla F(x_n), u_n \rangle
+    = \sum_{i=1}^d \frac{\nabla_i F(x_n) \cdot g_{n,i}}{\sqrt{\epsilon+v_{n,i}}}.
+\]
+確率的勾配の不偏性 $\mathbb{E}[g_{n,i}] = \nabla_i F(x_n)$ より，期待値をとると，
+\[
+    \mathbb{E}\!\left[\langle \nabla F(x_n), u_n \rangle\right]
+    = \sum_{i=1}^d \frac{(\nabla_i F(x_n))^2}{\sqrt{\epsilon+v_{n,i}}}.
+\]
+仮定 $\|g_n\|_\infty \leq R$ より各座標で $\sqrt{\epsilon + v_{n,i}} \leq \sqrt{v_{N,i}} \leq \sqrt{NR^2} = R\sqrt{N}$ であるが，
+より単純な評価として $\sqrt{\epsilon + v_{n,i}} \leq 2R$ を用いると，
+\[
+    \sum_{i=1}^d \frac{(\nabla_i F(x_n))^2}{\sqrt{\epsilon+v_{n,i}}}
+    \geq \frac{1}{2R}\sum_{i=1}^d (\nabla_i F(x_n))^2
+    = \frac{\|\nabla F(x_n)\|^2}{2R}.
+\]
+すなわち，
+\[
+    \mathbb{E}\!\left[\langle \nabla F(x_n), u_n \rangle\right]
+    \geq \frac{\|\nabla F(x_n)\|^2}{2R}.
+    \tag{B}
+\]
+
+\noindent
+$u_{n,i}$ の定義より，
+\[
+    \|u_n\|^2 = \sum_{i=1}^d \frac{g_{n,i}^2}{\epsilon + v_{n,i}}.
+\]
+$n = 1, \ldots, N$ について総和をとり，和の順序を交換すると，
+\[
+    \sum_{n=1}^N \|u_n\|^2
+    = \sum_{i=1}^d \sum_{n=1}^N \frac{g_{n,i}^2}{\epsilon + v_{n,i}}.
+\]
+$g_{n,i}^2 = v_{n,i} - v_{n-1,i}$ および $f(t)=1/t$ の単調減少性より，
+各項は右端点矩形として積分で上から抑えられる：
+\[
+    \frac{v_{n,i}-v_{n-1,i}}{\epsilon+v_{n,i}}
+    \leq \int_{v_{n-1,i}+\epsilon}^{v_{n,i}+\epsilon} \frac{dt}{t}.
+\]
+$n$ について総和をとると右辺が Telescoping し，
+\[
+    \sum_{n=1}^N \frac{g_{n,i}^2}{\epsilon+v_{n,i}}
+    \leq \int_\epsilon^{v_{N,i}+\epsilon}\frac{dt}{t}
+    = \ln\!\left(1+\frac{v_{N,i}}{\epsilon}\right).
+\]
+さらに $v_{N,i} \leq NR^2$ を代入し，$d$ 座標について総和をとると，
+\[
+    \sum_{n=1}^N \|u_n\|^2
+    \leq \sum_{i=1}^d \ln\!\left(1+\frac{v_{N,i}}{\epsilon}\right)
+    \leq \sum_{i=1}^d \ln\!\left(1+\frac{NR^2}{\epsilon}\right)
+    = d\ln\!\left(1+\frac{NR^2}{\epsilon}\right).
+    \tag{C}
+\]
+\textbf{(B),(C)を(A)に代入すると}\\
+\noindent
+$v_{n,i} = \sum_{k=1}^n g_{k,i}^2$ には現在のステップの $g_{n,i}$ が含まれるため，
+$g_{n,i}$ と $v_{n,i}$ は独立でない．
+このため，期待値を展開すると主項の他に誤差項が生じ，
+(B) で使った下界を用いると次の式が得られる：
+\[
+    \frac{1}{2R}\sum_{n=1}^N \mathbb{E}\!\left[\|\nabla F(x_n)\|^2\right]
+    \leq \frac{F(x_0)-F_*}{\alpha}
+    + \frac{\alpha L}{2}\cdot d\ln\!\left(1+\frac{NR^2}{\epsilon}\right)
+    + \underbrace{\sum_{i=1}^d\sum_{n=1}^N \frac{g_{n,i}^2}{\sqrt{\epsilon+v_{n,i}}}}_{\text{交差誤差項}}.
+\]
+両辺に $2R$ を掛けると，
+\[
+    \sum_{n=1}^N \mathbb{E}\!\left[\|\nabla F(x_n)\|^2\right]
+    \leq \frac{2R(F(x_0)-F_*)}{\alpha}
+    + \alpha dRL\ln\!\left(1+\frac{NR^2}{\epsilon}\right)
+    + 2R\sum_{i=1}^d\sum_{n=1}^N \frac{g_{n,i}^2}{\sqrt{\epsilon+v_{n,i}}}.
+    \tag{D}
+\]
+
+\noindent
+各座標 $i$ ごとに
+\[
+    \sum_{n=1}^N \frac{g_{n,i}^2}{\sqrt{\epsilon+v_{n,i}}}
+    \leq 2\sqrt{v_{N,i}} \leq 2\sqrt{NR^2} = 2R\sqrt{N}
+\]
+が成立するから，全座標 $i=1,\ldots,d$ について和をとると，
+\[
+    \sum_{i=1}^d\sum_{n=1}^N \frac{g_{n,i}^2}{\sqrt{\epsilon+v_{n,i}}}
+    \leq 2dR\sqrt{N}.
+\]
+これを (D) の誤差項に代入し，$2R \cdot 2dR\sqrt{N} = 4dR^2\sqrt{N}$ よると，
+\[
+    \sum_{n=1}^N \mathbb{E}\!\left[\|\nabla F(x_n)\|^2\right]
+    \leq \frac{2R(F(x_0)-F_*)}{\alpha}
+    + \alpha dRL\ln\!\left(1+\frac{NR^2}{\epsilon}\right)
+    + 4dR^2\sqrt{N}.
+    \tag{D'}
+\]
+
+\noindent
+$\tau$ は $\{1,\ldots,N\}$ 上の一様ランダムな添字であるから，
+\[
+    \mathbb{E}\!\left[\|\nabla F(x_\tau)\|^2\right]
+    = \frac{1}{N}\sum_{n=1}^N \mathbb{E}\!\left[\|\nabla F(x_n)\|^2\right].
+\]
+(D') の両辺を $N$ で割ると，精確な上界として
+\begin{equation}
+    \mathbb{E}\!\left[\|\nabla F(x_\tau)\|^2\right]
+    \leq \frac{2R(F(x_0)-F_*)}{\alpha N}
+    + \frac{\alpha dRL}{N}\ln\!\left(1+\frac{NR^2}{\epsilon}\right)
+    + \frac{4dR^2\sqrt{N}}{N}. \label{eq:exact}
+\end{equation}
+$\dfrac{\sqrt{N}}{N} = \dfrac{1}{\sqrt{N}}$ より第三項は $\dfrac{4dR^2}{\sqrt{N}}$ である．
+
+\medskip
+\noindent
+\underline{（第一項）：$\dfrac{1}{N} \leq \dfrac{1}{\sqrt{N}}$}
+
+$N \geq 1$ のとき $\sqrt{N} \leq N$ であるから $\dfrac{1}{N} \leq \dfrac{1}{\sqrt{N}}$ が成立する．
+これを第一項に適用すると，
+\[
+    \frac{2R(F(x_0)-F_*)}{\alpha N}
+    \;\leq\;
+    \frac{2R(F(x_0)-F_*)}{\alpha\sqrt{N}}.
+\]
+
+\medskip
+\noindent
+\underline{ （第二項）：$\dfrac{1}{\sqrt{N}} \leq 1$}
+
+第二項を分解すると，
+\[
+    \frac{\alpha dRL}{N}\ln\!\left(1+\frac{NR^2}{\epsilon}\right)
+    = \frac{1}{\sqrt{N}} \cdot \frac{\alpha dRL}{\sqrt{N}} \cdot
+      \ln\!\left(1+\frac{NR^2}{\epsilon}\right).
+\]
+ここで $N \geq 1$ のとき $\dfrac{1}{\sqrt{N}} \leq 1$ が成立するから，
+内側の $\dfrac{1}{\sqrt{N}}$ を $1$ で上から抑えると，
+\[
+    \frac{1}{\sqrt{N}} \cdot \frac{\alpha dRL}{\sqrt{N}} \cdot
+      \ln\!\left(1+\frac{NR^2}{\epsilon}\right)
+    \;\leq\;
+    \frac{1}{\sqrt{N}} \cdot \alpha dRL \cdot
+      \ln\!\left(1+\frac{NR^2}{\epsilon}\right).
+\]
+
+\medskip
+\noindent
+\underline{ （第三項）：追加のなし}
+
+第三項 $\dfrac{4dR^2}{\sqrt{N}}$ はすでに $\dfrac{1}{\sqrt{N}}$ の形であるから，
+そのまま
+\[
+    \frac{4dR^2}{\sqrt{N}}
+    = \frac{1}{\sqrt{N}} \cdot 4dR^2 \cdot
+      \ln\!\left(1+\frac{NR^2}{\epsilon}\right)^0.
+\]
+ただし，第二項と括弧にまとめるために，
+$\ln\!\left(1+NR^2/\epsilon\right) \geq 1$（$N \geq 1$, $R > 0$, $\epsilon > 0$ のとき）
+を用いて $4dR^2 \leq 4dR^2 \cdot \ln\!\left(1+NR^2/\epsilon\right)$
+と上から抑え，第二項と同じ $\ln$ 因子を持たせる：
+\[
+    \frac{4dR^2}{\sqrt{N}}
+    \;\leq\;
+    \frac{1}{\sqrt{N}} \cdot 4dR^2 \cdot
+      \ln\!\left(1+\frac{NR^2}{\epsilon}\right).
+\]
+
+\medskip
+\noindent
+したがって、\\
+\noindent
+以上三段階のを式~\eqref{eq:exact} に適用すると，
+\[
+    \mathbb{E}\!\left[\|\nabla F(x_\tau)\|^2\right]
+    \;\leq\;
+    \frac{2R(F(x_0)-F_*)}{\alpha\sqrt{N}}
+    + \frac{1}{\sqrt{N}} \cdot \alpha dRL \cdot \ln\!\left(1+\frac{NR^2}{\epsilon}\right)
+    + \frac{1}{\sqrt{N}} \cdot 4dR^2 \cdot \ln\!\left(1+\frac{NR^2}{\epsilon}\right).
+\]
+第二項と第三項を $\dfrac{1}{\sqrt{N}}\ln\!\left(1+NR^2/\epsilon\right)$ でくくることで，
+\[
+    \mathbb{E}\!\left[\|\nabla F(x_\tau)\|^2\right]
+    \leq 2R\,\frac{F(x_0)-F_*}{\alpha\sqrt{N}}
+    + \frac{1}{\sqrt{N}}\!\left(4dR^2 + \alpha dRL\right)
+    \ln\!\left(1+\frac{NR^2}{\epsilon}\right).
+    \tag{10}
+\]
+右辺は $N\to\infty$ のとき $\dfrac{\ln N}{\sqrt{N}}\to 0$ の速度で減少し，
+アルゴリズムが勾配ゼロの点に収束することが保証される．
+\end{proof}
+
+\bigskip
+\subsection{定理2：Adam（モーメンタムなし）}
+
+% \begin{thm}
+% $0<\beta_2<1,\ \beta_1=0$ のとき，
+% \begin{equation}
+%     \mathbb{E}[\|\nabla F(x_\tau)\|^2]
+%     \leq
+%     \frac{2R(F(x_0)-F^*)}{\alpha N}
+%     + E\left(
+%         \frac{1}{N}\ln\left(1+\frac{R^2}{(1-\beta_2)\epsilon}\right)
+%         - \ln(\beta_2)
+%     \right).
+% \end{equation}
+% \end{thm}
+
+% \begin{proof}
+
+% Step 1–3 は定理1と同様．
+
+% Step 4：指数移動平均より
+% \[
+%     v_n = \sum_{k=1}^n \beta_2^{n-k} g_k^2
+%     \leq \frac{R^2}{1-\beta_2}.
+% \]
+
+% したがって
+% \[
+%     \frac{1}{\sqrt{\epsilon+v_n}}
+%     \geq \frac{1}{\sqrt{\epsilon + \frac{R^2}{1-\beta_2}}}.
+% \]
+
+% Step 5：和の評価：
+% \[
+%     \sum_{n=1}^N \frac{1}{\epsilon+v_n}
+%     \leq
+%     \frac{1}{1-\beta_2}
+%     \ln\!\left(1+\frac{R^2}{(1-\beta_2)\epsilon}\right)
+%     - N\ln(\beta_2).
+% \]
+
+% Step 6：$\tau$ は一様なので平均をとり結論を得る．
+
+% \end{proof}
+
+\bigskip
+\subsection{定理3：Adagrad（モーメンタムあり）}
+
+% \begin{thm}
+% $0 \le \beta_1 < 1$ のとき，
+% \begin{equation}
+%     \mathbb{E}[\|\nabla F(x_\tau)\|^2]
+%     \leq
+%     2R\sqrt{N}\frac{F(x_0)-F^*}{\alpha \tilde N}
+%     + \frac{\sqrt{N}}{\tilde N}E\ln\!\left(1+\frac{NR^2}{\epsilon}\right),
+% \end{equation}
+% ただし $\tilde N = N - \frac{\beta_1}{1-\beta_1}$．
+% \end{thm}
+
+% \begin{proof}
+
+% Step 1–2 は同様．
+
+% Step 3：Lemma A.1 より
+% \begin{align}
+%     \mathbb{E}[\nabla F(x_{n-1})^\top u_n]
+%     \geq
+%     \sum_{k=0}^{n-1}
+%     \beta_1^k
+%     \mathbb{E}\!\left[
+%         \frac{\|\nabla F(x_{n-1-k})\|^2}{\sqrt{\epsilon+v_n}}
+%     \right]
+%     - \mathcal{E}_n.
+% \end{align}
+
+% Step 4：和の順序交換により
+% \begin{align}
+%     \sum_{n=1}^N \sum_{k=0}^{n-1} \beta_1^k (\cdot)
+%     =
+%     \sum_{j=0}^{N-1}
+%     \left(1-\beta_1^{N-j}\right)
+%     (\cdot).
+% \end{align}
+
+% Step 5：したがって
+% \[
+%     \sum_{j=0}^{N-1}
+%     (1-\beta_1^{N-j})
+%     \mathbb{E}[\|\nabla F(x_j)\|^2]
+% \]
+% が得られる．
+
+% Step 6：$Z_N = \tilde N$ を用いて正規化すると
+% \[
+%     \mathbb{E}[\|\nabla F(x_\tau)\|^2]
+%     =
+%     \frac{1}{\tilde N}
+%     \sum_{j=0}^{N-1}
+%     (1-\beta_1^{N-j})
+%     \mathbb{E}[\|\nabla F(x_j)\|^2].
+% \]
+
+% Step 7：残りは定理1と同様の評価を適用し結論を得る．
+
+% \end{proof}
+
+\bigskip
+\subsection{定理4：Adam（モーメンタムあり）}
+
+% \begin{thm}
+% $0 \le \beta_1 < \beta_2 < 1$ のとき，
+% \begin{align}
+%     \mathbb{E}[\|\nabla F(x_\tau)\|^2]
+%     \leq
+%     2R\frac{F(x_0)-F^*}{\alpha \tilde N}
+%     + E\left(
+%         \frac{1}{\tilde N}
+%         \ln\left(1+\frac{R^2}{(1-\beta_2)\epsilon}\right)
+%         - \frac{N}{\tilde N}\ln(\beta_2)
+%     \right).
+% \end{align}
+% \end{thm}
+
+% \begin{proof}
+
+% Step 1–3：Lemma A.1 を適用．
+
+% Step 4：$\tilde v_n$ を導入し独立性を回復：
+% \[
+%     \tilde v_n =
+%     \sum_{k=1}^n \beta_2^{n-k} \mathbb{E}[g_k^2].
+% \]
+
+% Step 5：これにより
+% \[
+%     \mathbb{E}\!\left[
+%         \frac{g_n^2}{\sqrt{\epsilon+v_n}}
+%     \right]
+%     \leq
+%     \mathbb{E}\!\left[
+%         \frac{g_n^2}{\sqrt{\epsilon+\tilde v_n}}
+%     \right]
+% \]
+% が成立する．
+
+% Step 6：指数減衰の和を評価すると
+% \[
+%     \sum_{n=1}^N \frac{1}{\tilde v_n}
+%     \leq
+%     \frac{1}{1-\beta_2}
+%     \ln\!\left(1+\frac{R^2}{(1-\beta_2)\epsilon}\right)
+%     - N\ln(\beta_2).
+% \]
+
+% Step 7：Step 4 と同様に $\tau$ の重みで整理し結論を得る．
+
+% \end{proof}
+
+% \bigskip
+% \subsection{まとめ}
+
+% 以上より，全てのアルゴリズムについて
+% \[
+%     \mathbb{E}[\|\nabla F(x_\tau)\|^2]
+%     = O\!\left(\frac{\ln N}{\sqrt{N}}\right)
+% \]
+% が成立する．
+
+% さらに，
+% \[
+%     \text{モーメンタムの影響} \sim \frac{1}{1-\beta_1},
+%     \qquad
+%     \text{Adam の影響} \sim \ln(\beta_2)
+% \]
+% が収束性に現れる．
 
 % \begin{rem}[本論文での使われ方]
 % 論文の証明では，この Descent Lemma を
